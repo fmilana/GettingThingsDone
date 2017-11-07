@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_in_tray"
+            android:icon="@drawable/ic_archive_black_24dp"
+            android:title="@string/in_tray" />
+        <item
+            android:id="@+id/nav_projects"
+            android:icon="@drawable/ic_assignment_black_24dp"
+            android:title="@string/projects" />
+        <item
+            android:id="@+id/nav_calendar"
+            android:icon="@drawable/ic_today_black_24dp"
+            android:title="@string/calendar" />
+        <item
+            android:id="@+id/nav_waiting_for"
+            android:icon="@drawable/ic_watch_later_black_24dp"
+            android:title="@string/waiting_for" />
+        <item
+            android:id="@+id/nav_maybe_later"
+            android:icon="@drawable/ic_help_black_24dp"
+            android:title="@string/maybe_later" />
+        <item
+            android:id="@+id/nav_reference"
+            android:icon="@drawable/ic_folder_black_24dp"
+            android:title="@string/reference" />
+        <item
+            android:id="@+id/nav_trash"
+            android:icon="@drawable/ic_delete_black_24dp"
+            android:title="@string/trash" />
+    </group>
+
+    <!--<item android:title="Communicate">-->
+        <!--<menu>-->
+            <!--<item-->
+                <!--android:id="@+id/nav_share"-->
+                <!--android:icon="@drawable/ic_menu_share"-->
+                <!--android:title="Share" />-->
+            <!--<item-->
+                <!--android:id="@+id/nav_send"-->
+                <!--android:icon="@drawable/ic_menu_send"-->
+                <!--android:title="Send" />-->
+        <!--</menu>-->
+    <!--</item>-->
+
+</menu>
