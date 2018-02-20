@@ -1,26 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.gettingthingsdone.federico.gettingthingsdone.activities.MainActivity"
-    android:id="@+id/in_tray_coordinator_layout"
+    android:id="@+id/tags_coordinator_layout"
     android:background="@color/colorLightGrey">
 
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/in_tray_recycler_view"
+        android:id="@+id/tags_recycler_view"
         android:scrollbars="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/in_tray_fab"
+        android:id="@+id/tags_fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
         app:srcCompat="@drawable/ic_fab_add" />
-
 
 </android.support.design.widget.CoordinatorLayout>

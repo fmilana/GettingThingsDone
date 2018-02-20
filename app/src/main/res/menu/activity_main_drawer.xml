@@ -3,7 +3,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:showIn="navigation_view">
 
-    <group android:checkableBehavior="single">
+    <group
+        android:id="@+id/main_nav_group"
+        android:checkableBehavior="single"
+        >
         <item
             android:id="@+id/nav_in_tray"
             android:icon="@drawable/ic_archive_black_24dp"
@@ -32,19 +35,20 @@
             android:id="@+id/nav_trash"
             android:icon="@drawable/ic_delete_black_24dp"
             android:title="@string/trash" />
+        <item
+            android:id="@+id/nav_tags"
+            android:icon="@drawable/ic_local_offer_black_24dp"
+            android:title="@string/tags" />
     </group>
 
-    <!--<item android:title="Communicate">-->
-        <!--<menu>-->
-            <!--<item-->
-                <!--android:id="@+id/nav_share"-->
-                <!--android:icon="@drawable/ic_menu_share"-->
-                <!--android:title="Share" />-->
-            <!--<item-->
-                <!--android:id="@+id/nav_send"-->
-                <!--android:icon="@drawable/ic_menu_send"-->
-                <!--android:title="Send" />-->
-        <!--</menu>-->
-    <!--</item>-->
+    <group
+        android:id="@+id/extra_nav_group"
+        android:checkableBehavior="none">
+
+        <item
+            android:id="@+id/nav_settings"
+            android:icon="@drawable/ic_settings_black_24dp"
+            android:title="@string/settings" />
+    </group>
 
 </menu>

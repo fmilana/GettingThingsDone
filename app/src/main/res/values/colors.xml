@@ -7,5 +7,8 @@
 
     <color name="colorBlack">#000000</color>
     <color name="colorWhite">#FFFFFF</color>
-    <color name="colorLightGray">#EEEEEE</color>
+    <color name="colorLightGrey">#EEEEEE</color>
+
+    <color name="colorLightGrey2">#BDBDBD</color>
+
 </resources>

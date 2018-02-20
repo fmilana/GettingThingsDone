@@ -1,25 +1,40 @@
 package com.gettingthingsdone.federico.gettingthingsdone.fragments;
 
+import android.app.Activity;
 import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.Toast;
 
 import com.gettingthingsdone.federico.gettingthingsdone.InTrayItem;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
-import com.gettingthingsdone.federico.gettingthingsdone.adapters.InTrayAdapter;
+import com.gettingthingsdone.federico.gettingthingsdone.User;
+import com.gettingthingsdone.federico.gettingthingsdone.activities.InTrayNewItemActivity;
+import com.gettingthingsdone.federico.gettingthingsdone.activities.MainActivity;
+import com.gettingthingsdone.federico.gettingthingsdone.activities.MainFragmentActivity;
+import com.gettingthingsdone.federico.gettingthingsdone.adapters.InTrayItemsAdapter;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -32,46 +47,35 @@ public class InTrayFragment extends Fragment {
     private RecyclerView.Adapter adapter;
     private RecyclerView.LayoutManager layoutManager;
 
-    private List<InTrayItem> items;
+    public static final int REQUEST_NEW_ITEM = 0;
+    public static final int REQUEST_EDIT_ITEM = 1;
 
-    public void initialiseItems() {
-        items = new ArrayList<InTrayItem>();
+    private FirebaseAuth firebaseAuth;
 
-        items.add(new InTrayItem("somebody"));
-        items.add(new InTrayItem("once"));
-        items.add(new InTrayItem("told"));
-        items.add(new InTrayItem("me"));
-        items.add(new InTrayItem("the"));
-        items.add(new InTrayItem("world"));
-        items.add(new InTrayItem("was"));
-        items.add(new InTrayItem("gonna"));
-        items.add(new InTrayItem("roll"));
-        items.add(new InTrayItem("me"));
-        items.add(new InTrayItem("i"));
-        items.add(new InTrayItem("aint"));
-        items.add(new InTrayItem("the"));
-        items.add(new InTrayItem("sharpest"));
-        items.add(new InTrayItem("tool"));
-        items.add(new InTrayItem("in"));
-        items.add(new InTrayItem("the"));
-        items.add(new InTrayItem("shed"));
-        items.add(new InTrayItem("clean house"));
-        items.add(new InTrayItem("Phone number"));
-        items.add(new InTrayItem("029487639"));
-        items.add(new InTrayItem("call mike"));
-        items.add(new InTrayItem("buy pc"));
-        items.add(new InTrayItem("clean house"));
-        items.add(new InTrayItem("Phone number"));
-        items.add(new InTrayItem("029487639"));
-    }
+    private DatabaseReference databaseReference;
 
-    public List<InTrayItem> getItems() {
-        return items;
+    private ArrayList<InTrayItem> items = new ArrayList<>();
+
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        firebaseAuth = FirebaseAuth.getInstance();
+
+        databaseReference = FirebaseDatabase.getInstance().getReference();
+
+        if (firebaseAuth.getCurrentUser() == null) {
+            Intent intent = new Intent(getActivity(), MainActivity.class);
+            getActivity().startActivity(intent);
+        }
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        setHasOptionsMenu(true);
+
         View view = inflater.inflate(R.layout.fragment_in_tray, container, false);
 
         getActivity().setTitle(R.string.in_tray);
@@ -85,15 +89,9 @@ public class InTrayFragment extends Fragment {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-
-                getActivity().setTitle(R.string.enter_item_in_tray);
-
-                FragmentManager fragmentManager = getFragmentManager();
-                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-                fragmentTransaction.add(R.id.content_main_constraint_layout, new InTrayInputDialogFragment()).addToBackStack(null).commit();
+                Intent intent = new Intent(getActivity(), InTrayNewItemActivity.class);
+                intent.putExtra("requestCode", REQUEST_NEW_ITEM);
+                startActivity(intent);
             }
         });
 
@@ -101,9 +99,40 @@ public class InTrayFragment extends Fragment {
         layoutManager = new GridLayoutManager(this.getActivity(), 2);
         recyclerView.setLayoutManager(layoutManager);
 
-        initialiseItems();
-
-        adapter = new InTrayAdapter(items);
+        adapter = new InTrayItemsAdapter(this, items);
         recyclerView.setAdapter(adapter);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.menu_delete) {
+
+            ArrayList<InTrayItem> itemsToRemove = new ArrayList<>();
+
+            for (int i = 0; i < ((InTrayItemsAdapter)adapter).getSelectedIndexes().size(); ++i) {
+                itemsToRemove.add(items.get(((InTrayItemsAdapter)adapter).getSelectedIndexes().get(i)));
+            }
+
+            for (int i = 0; i < itemsToRemove.size(); ++i) {
+                databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("intrayitems").child(itemsToRemove.get(i).getKey()).removeValue();
+            }
+
+            InTrayItemsAdapter.ViewHolder.clearSelected();
+
+            ((MainFragmentActivity)getActivity()).getMenu().findItem(R.id.menu_delete).setVisible(false);
+
+            InTrayItemsAdapter.ViewHolder.stopSelecting();
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    public List<InTrayItem> getItems(){
+        return items;
     }
 }

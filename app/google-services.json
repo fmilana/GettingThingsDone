@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "942166176082",
+    "firebase_url": "https://gettingthingsdone-59b86.firebaseio.com",
+    "project_id": "gettingthingsdone-59b86",
+    "storage_bucket": "gettingthingsdone-59b86.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:942166176082:android:fc9a288cc82c6c3a",
+        "android_client_info": {
+          "package_name": "com.gettingthingsdone.federico.gettingthingsdone"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "942166176082-43qmmvhdhta2ce1sdbufiopmvkssdvqo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCqQymhSKBnu3vICfw7fJD4yANfuyEQYSw"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

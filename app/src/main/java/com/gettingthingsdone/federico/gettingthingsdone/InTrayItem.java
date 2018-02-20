@@ -8,7 +8,11 @@ import java.util.List;
  */
 
 public class InTrayItem {
+
+    private String key;
     private String text;
+
+    public InTrayItem() {}
 
     public InTrayItem(String text) {
         this.text = text;
@@ -16,5 +20,17 @@ public class InTrayItem {
 
     public String getText() {
         return text;
+    }
+
+    public void setText(String text) {
+        this.text = text;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
+    }
+
+    public String getKey() {
+        return key;
     }
 }
