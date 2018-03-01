@@ -1,5 +1,6 @@
 package com.gettingthingsdone.federico.gettingthingsdone.activities;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.TimePickerDialog;
 import android.content.DialogInterface;
@@ -28,6 +29,7 @@ import android.widget.Toast;
 
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
+import com.firebase.geofire.LocationCallback;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
 import com.gettingthingsdone.federico.gettingthingsdone.Tag;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.InTrayFragment;
@@ -36,11 +38,16 @@ import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlacePicker;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 
 public class NewTagActivity extends AppCompatActivity {
@@ -49,13 +56,18 @@ public class NewTagActivity extends AppCompatActivity {
     private DatabaseReference databaseReference;
     private GeoFire geoFire;
 
-    private EditText editText;
+    private EditText textEditText;
 
     private TextInputEditText timeEditText;
     private TextInputEditText locationEditText;
 
     private String time;
     private Place place;
+
+    private String oldLocationKey;
+
+    private GeoLocation selectedLocation;
+
 
     private static final int PLACE_PICKER_REQUEST = 1;
 
@@ -66,8 +78,9 @@ public class NewTagActivity extends AppCompatActivity {
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        editText = (EditText) findViewById(R.id.new_tag_input_edit_text);
-        editText.requestFocus();
+        textEditText = (EditText) findViewById(R.id.new_tag_input_edit_text);
+
+        textEditText.requestFocus();
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
 
         timeEditText = (TextInputEditText) findViewById(R.id.new_tag_time_input_edit_text);
@@ -78,20 +91,23 @@ public class NewTagActivity extends AppCompatActivity {
 
         firebaseAuth = FirebaseAuth.getInstance();
         databaseReference = FirebaseDatabase.getInstance().getReference();
-        geoFire = new GeoFire(FirebaseDatabase.getInstance().getReference("taglocations"));
 
-        editText = (EditText)findViewById(R.id.new_tag_input_edit_text);
+        geoFire = new GeoFire(databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("taglocations"));
+
+        textEditText = (EditText)findViewById(R.id.new_tag_input_edit_text);
+
+        oldLocationKey = getIntent().getStringExtra("tag location key");
 
         if (getIntent().getIntExtra("requestCode", -1) == TagsFragment.REQUEST_EDIT_TAG) {
 
-            editText.setText(getIntent().getStringExtra("tag text"));
-            editText.setSelection(editText.getText().length());
+            textEditText.setText(getIntent().getStringExtra("tag text"));
+            textEditText.setSelection(textEditText.getText().length());
 
             time = getIntent().getStringExtra("tag time");
 
             timeEditText.setText(time);
 
-            locationEditText.setText(getIntent().getStringExtra("tag address"));
+            locationEditText.setText(getIntent().getStringExtra("tag location address"));
 
             setTitle(R.string.edit_tag);
 
@@ -119,6 +135,9 @@ public class NewTagActivity extends AppCompatActivity {
                             time = null;
 
                             timeEditText.getText().clear();
+
+                            selectedLocation = null;
+
                         }
                     });
 
@@ -142,6 +161,8 @@ public class NewTagActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
+                System.out.println("locationEditText length = " + locationEditText.getText().length());
+
                 if (locationEditText.getText().length() == 0) {
 
                     selectTagLocation();
@@ -150,7 +171,7 @@ public class NewTagActivity extends AppCompatActivity {
 
                     AlertDialog.Builder builder = new AlertDialog.Builder(NewTagActivity.this);
 
-                    builder.setTitle(place.getAddress());
+                    builder.setTitle(locationEditText.getText().toString().trim());
 
                     builder.setNegativeButton(R.string.remove, new DialogInterface.OnClickListener() {
                         @Override
@@ -158,6 +179,10 @@ public class NewTagActivity extends AppCompatActivity {
                             place = null;
 
                             locationEditText.getText().clear();
+
+                            if (selectedLocation != null) {
+                                selectedLocation = null;
+                            }
                         }
                     });
 
@@ -199,10 +224,26 @@ public class NewTagActivity extends AppCompatActivity {
                 return true;
 
             case R.id.new_tag_done:
-                if (editText.getText().toString().trim().length() > 0) {
+
+                String tagText = textEditText.getText().toString().trim();
+
+                if (tagText.length() > 0) {
                     if (getIntent().getIntExtra("requestCode", -1) == TagsFragment.REQUEST_NEW_TAG) {
 
-                        Tag newTag = new Tag(editText.getText().toString().trim());
+                        ArrayList<String> tagTexts = getIntent().getStringArrayListExtra("tag text list");
+
+                        //checks if a tag with the same name exists
+                        for (int i = 0; i < tagTexts.size(); ++i) {
+                            if (tagTexts.get(i).equals(tagText)) {
+
+                                Toast.makeText(this, "Tag with that name already exists", Toast.LENGTH_SHORT).show();
+
+                                return true;
+                            }
+                        }
+
+
+                        Tag newTag = new Tag(tagText);
 
                         if (time != null) {
                             newTag.setTime(time);
@@ -212,7 +253,7 @@ public class NewTagActivity extends AppCompatActivity {
                             newTag.setLocationKey(place.getId());
                             newTag.setLocationAddress(place.getAddress().toString());
 
-                            geoFire.setLocation(newTag.getLocationKey(), new GeoLocation(place.getLatLng().latitude, place.getLatLng().longitude), new GeoFire.CompletionListener() {
+                            geoFire.setLocation(place.getId(), new GeoLocation(place.getLatLng().latitude, place.getLatLng().longitude), new GeoFire.CompletionListener() {
                                 @Override
                                 public void onComplete(String key, DatabaseError error) {
                                     Toast.makeText(NewTagActivity.this, "Location stored successfully", Toast.LENGTH_SHORT).show();
@@ -222,9 +263,25 @@ public class NewTagActivity extends AppCompatActivity {
 
                         databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("tags").push().setValue(newTag);
 
+                        setResult(Activity.RESULT_OK);
+
                     } else if (getIntent().getIntExtra("requestCode", -1) == TagsFragment.REQUEST_EDIT_TAG) {
 
-                        Tag editedTag = new Tag(editText.getText().toString().trim());
+                        ArrayList<String> tagTexts = getIntent().getStringArrayListExtra("tag text list");
+
+                        int tagPosition = getIntent().getIntExtra("tag position", -1);
+
+                        //checks if a tag with the same name exists and it's not the one being edited
+                        for (int i = 0; i < tagTexts.size(); ++i) {
+                            if (tagTexts.get(i).equals(tagText) && i != tagPosition) {
+
+                                Toast.makeText(this, "Tag with that name already exists", Toast.LENGTH_SHORT).show();
+
+                                return true;
+                            }
+                        }
+
+                        Tag editedTag = new Tag(tagText);
 
                         if (time != null) {
                             editedTag.setTime(time);
@@ -233,14 +290,34 @@ public class NewTagActivity extends AppCompatActivity {
                             editedTag.setLocationKey(place.getId());
                             editedTag.setLocationAddress(place.getAddress().toString());
 
-
-                            geoFire.setLocation(editedTag.getLocationKey(), new GeoLocation(place.getLatLng().latitude, place.getLatLng().longitude), new GeoFire.CompletionListener() {
+                            geoFire.setLocation(place.getId(), new GeoLocation(place.getLatLng().latitude, place.getLatLng().longitude), new GeoFire.CompletionListener() {
                                 @Override
                                 public void onComplete(String key, DatabaseError error) {
                                     Toast.makeText(NewTagActivity.this, "Location stored successfully", Toast.LENGTH_SHORT).show();
                                 }
                             });
+
+                            //////////////////////////////////////////////////////////////////////
+                            if (oldLocationKey != null && !oldLocationKey.equals(place.getId())) {
+
+                                geoFire.removeLocation(oldLocationKey, new GeoFire.CompletionListener() {
+                                    @Override
+                                    public void onComplete(String key, DatabaseError error) {
+                                        System.out.println("Old location deleted");
+                                    }
+                                });
+                            }
+                        } else {
+                            if (oldLocationKey != null) {
+                                geoFire.removeLocation(oldLocationKey, new GeoFire.CompletionListener() {
+                                    @Override
+                                    public void onComplete(String key, DatabaseError error) {
+                                        System.out.println("Old location deleted");
+                                    }
+                                });
+                            }
                         }
+
 
                         String tagKey = getIntent().getStringExtra("tag key");
                         databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("tags").child(tagKey).setValue(editedTag);
@@ -285,9 +362,61 @@ public class NewTagActivity extends AppCompatActivity {
     }
 
     private void selectTagLocation() {
+        if (locationEditText.getText().length() == 0) {
+
+            setUpPlacePicker(null);
+
+        } else if (selectedLocation != null) {
+
+            setUpPlacePicker(selectedLocation);
+
+        } else if (oldLocationKey != null) {
+
+            geoFire.getLocation(oldLocationKey, new LocationCallback() {
+                @Override
+                public void onLocationResult(String key, GeoLocation location) {
+                    if (location != null) {
+
+                        setUpPlacePicker(location);
+
+                    } else {
+                        System.out.println(String.format("There is no location for key %s in GeoFire", key));
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    System.err.println("There was an error getting the GeoFire location: " + databaseError);
+                }
+            });
+
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == PLACE_PICKER_REQUEST && resultCode == RESULT_OK) {
+            place = PlacePicker.getPlace(this, data);
+
+            locationEditText.setText(place.getAddress());
+
+            selectedLocation = new GeoLocation(place.getLatLng().latitude, place.getLatLng().longitude);
+        }
+    }
+
+    private void setUpPlacePicker(GeoLocation location) {
+
         PlacePicker.IntentBuilder builder = new PlacePicker.IntentBuilder();
 
-//        builder.setLatLngBounds()
+        if (location != null) {
+
+            LatLng bottomLeft = new LatLng(location.latitude - 0.005, location.longitude - 0.005);
+            LatLng topRight = new LatLng(location.latitude + 0.005, location.longitude + 0.005);
+
+            LatLngBounds bounds = new LatLngBounds(bottomLeft, topRight);
+
+            builder.setLatLngBounds(bounds);
+        }
 
         try {
             startActivityForResult(builder.build(NewTagActivity.this), PLACE_PICKER_REQUEST);
@@ -296,17 +425,6 @@ public class NewTagActivity extends AppCompatActivity {
             Toast.makeText(NewTagActivity.this, "Google Play Services not available at this time", Toast.LENGTH_SHORT).show();
         } catch (GooglePlayServicesNotAvailableException e) {
             Toast.makeText(NewTagActivity.this, "Google Play Services not available at this time", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == PLACE_PICKER_REQUEST) {
-            if (resultCode == RESULT_OK) {
-                place = PlacePicker.getPlace(this, data);
-
-                locationEditText.setText(place.getAddress());
-            }
         }
     }
 }

@@ -27,6 +27,8 @@
     <string name="tags">Tags</string>
     <string name="settings">Settings</string>
 
+    <string name="clarify">CLARIFY</string>
+
     <string name="in_tray_new_item">New Item</string>
     <string name="in_tray_edit_item">Edit Item</string>
 

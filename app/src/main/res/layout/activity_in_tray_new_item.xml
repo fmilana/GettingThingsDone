@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.gettingthingsdone.federico.gettingthingsdone.activities.InTrayNewItemActivity"
-    android:background="@color/colorLightGrey"
+    android:background="@color/colorLighterGrey"
     android:padding="@dimen/standard_padding">
 
     <android.support.design.widget.TextInputLayout

@@ -69,6 +69,7 @@ public class InTrayFragment extends Fragment {
             Intent intent = new Intent(getActivity(), MainActivity.class);
             getActivity().startActivity(intent);
         }
+
     }
 
     @Nullable

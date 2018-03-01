@@ -1,5 +1,6 @@
 package com.gettingthingsdone.federico.gettingthingsdone.activities;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -10,6 +11,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.WindowManager;
+import android.widget.Adapter;
 import android.widget.EditText;
 
 import com.gettingthingsdone.federico.gettingthingsdone.Tag;
@@ -27,6 +29,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class InTrayNewItemActivity extends AppCompatActivity {
@@ -82,8 +85,15 @@ public class InTrayNewItemActivity extends AppCompatActivity {
         layoutManager.setJustifyContent(JustifyContent.FLEX_START);
         recyclerView.setLayoutManager(layoutManager);
 
+        System.out.println("passing " + tags.size() + " tags to adapter");
+
+
         adapter = new ItemTagsAdapter(this, tags);
         recyclerView.setAdapter(adapter);
+
+        addAddNewTag();
+
+        adapter.notifyDataSetChanged();
 
 //        populateContextTagsAdapter();
     }
@@ -104,17 +114,18 @@ public class InTrayNewItemActivity extends AppCompatActivity {
             case R.id.in_tray_new_item_done:
                 if (editText.getText().toString().trim().length() > 0) {
 
+                    HashMap<String, String> tagKeys = tagKeysToAdd();
+
+                    InTrayItem inTrayItem = new InTrayItem(editText.getText().toString().trim(), tagKeys);
+
                     if (getIntent().getIntExtra("requestCode", -1) == InTrayFragment.REQUEST_NEW_ITEM) {
 
-                        InTrayItem newInTrayItem = new InTrayItem(editText.getText().toString().trim());
-                        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("intrayitems").push().setValue(newInTrayItem);
+                        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("intrayitems").push().setValue(inTrayItem);
 
                     } else if (getIntent().getIntExtra("requestCode", -1) == InTrayFragment.REQUEST_EDIT_ITEM) {
 
-                        InTrayItem editedInTrayItem = new InTrayItem(editText.getText().toString().trim());
-
                         String itemKey = getIntent().getStringExtra("item key");
-                        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("intrayitems").child(itemKey).setValue(editedInTrayItem);
+                        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("intrayitems").child(itemKey).setValue(inTrayItem);
                     }
 
                 }
@@ -125,20 +136,55 @@ public class InTrayNewItemActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-//    private void populateContextTagsAdapter() {
-//        itemTags.add(new Tag("tag1"));
-//        itemTags.add(new Tag("tag2"));
-//        itemTags.add(new Tag("tag3"));
-//        itemTags.add(new Tag("tag4"));
-//        itemTags.add(new Tag("tag5"));
-//        itemTags.add(new Tag("tag6"));
-//
-//        adapter.notifyDataSetChanged();
-//    }
+    private HashMap<String, String> tagKeysToAdd() {
+
+        HashMap<String, String> tagKeys = new HashMap<>();
+
+        for (int i = 0; i < ((ItemTagsAdapter) adapter).getSelectedIndexes().size(); ++i) {
+
+            Tag selectedTag = tags.get(((ItemTagsAdapter) adapter).getSelectedIndexes().get(i));
+
+            tagKeys.put(selectedTag.getKey(), selectedTag.getText());
+        }
+
+        return tagKeys;
+    }
 
     @Override
     public void onBackPressed() {
         finish();
+    }
+
+    public void removeAddNewTag() {
+
+        Tag addNewTag = new Tag();
+
+        for (int i = 0; i < tags.size(); ++i) {
+            if (tags.get(i).getKey().equals("addNewTag")) {
+                addNewTag = tags.get(i);
+
+                break;
+            }
+        }
+
+        tags.remove(addNewTag);
+    }
+
+    public void addAddNewTag() {
+
+        Tag addNewTag = new Tag("New Tag + ");
+        addNewTag.setKey("addNewTag");
+
+        tags.add(addNewTag);
+    }
+
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == TagsFragment.REQUEST_NEW_TAG && resultCode == RESULT_OK) {
+            ((ItemTagsAdapter)adapter).setNewTagJustAdded(true);
+        }
     }
 
     public ArrayList<Tag> getTags() {

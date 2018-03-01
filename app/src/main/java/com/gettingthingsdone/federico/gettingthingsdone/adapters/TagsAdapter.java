@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.firebase.geofire.GeoFire;
 import com.gettingthingsdone.federico.gettingthingsdone.Tag;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.MainFragmentActivity;
@@ -37,6 +38,8 @@ public class TagsAdapter extends RecyclerView.Adapter<TagsAdapter.ViewHolder> {
     private FirebaseAuth firebaseAuth;
     private DatabaseReference databaseReference;
 
+    private GeoFire geoFire;
+
     private static ArrayList<CardView> selectedCards;
     private static ArrayList<Integer> selectedIndexes;
 
@@ -48,10 +51,14 @@ public class TagsAdapter extends RecyclerView.Adapter<TagsAdapter.ViewHolder> {
 
         private TagsFragment tagsFragment;
 
+        private ArrayList<Tag> tags;
+
         public ViewHolder(final TagsFragment tagsFragment, View cardView) {
             super(cardView);
 
             this.tagsFragment = tagsFragment;
+
+//            tags = TagsFragment.getTags();
 
             tagTextView = (TextView) cardView.findViewById(R.id.tag_text_view);
 
@@ -69,7 +76,20 @@ public class TagsAdapter extends RecyclerView.Adapter<TagsAdapter.ViewHolder> {
                         intent.putExtra("tag text", TagsFragment.getTags().get(getAdapterPosition()).getText());
                         intent.putExtra("tag key", TagsFragment.getTags().get(getAdapterPosition()).getKey());
                         intent.putExtra("tag time", TagsFragment.getTags().get(getAdapterPosition()).getTime());
-                        intent.putExtra("tag address", TagsFragment.getTags().get(getAdapterPosition()).getLocationAddress());;
+                        intent.putExtra("tag location address", TagsFragment.getTags().get(getAdapterPosition()).getLocationAddress());
+                        intent.putExtra("tag location key", TagsFragment.getTags().get(getAdapterPosition()).getLocationKey());
+
+
+                        ArrayList<String> tagTexts = new ArrayList<>();
+
+
+                        for (int i = 0; i < TagsFragment.getTags().size(); ++i) {
+                            tagTexts.add(TagsFragment.getTags().get(i).getText());
+                        }
+
+                        System.out.println("tagTexts has " + tagTexts.size() + " elements!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+
+                        intent.putExtra("tag text list", tagTexts);
 
 
                         tagsFragment.startActivity(intent);
@@ -167,6 +187,8 @@ public class TagsAdapter extends RecyclerView.Adapter<TagsAdapter.ViewHolder> {
         firebaseAuth = FirebaseAuth.getInstance();
         databaseReference = FirebaseDatabase.getInstance().getReference();
 
+        geoFire = new GeoFire(databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("taglocations"));
+
         databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("tags").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -205,7 +227,19 @@ public class TagsAdapter extends RecyclerView.Adapter<TagsAdapter.ViewHolder> {
             public void onChildRemoved(DataSnapshot dataSnapshot) {
                 for (int i = 0; i < TagsFragment.getTags().size(); ++i) {
                     if (TagsFragment.getTags().get(i).getKey().equals(dataSnapshot.getKey())) {
-                        TagsFragment.getTags().remove(i);
+
+                        Tag tagToRemove = TagsFragment.getTags().get(i);
+
+                        if (tagToRemove.getLocationKey() != null) {
+                            geoFire.removeLocation(tagToRemove.getLocationKey(), new GeoFire.CompletionListener() {
+                                @Override
+                                public void onComplete(String key, DatabaseError error) {
+                                    System.out.println("Location also removed");
+                                }
+                            });
+                        }
+
+                        TagsFragment.getTags().remove(tagToRemove);
                     }
                 }
 

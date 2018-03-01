@@ -5,7 +5,9 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.content.ClipData;
 import android.content.Intent;
+import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -14,7 +16,9 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.gettingthingsdone.federico.gettingthingsdone.InTrayItem;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
@@ -55,6 +59,7 @@ public class InTrayItemsAdapter extends RecyclerView.Adapter<InTrayItemsAdapter.
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
         private static TextView itemTextView;
+        private AppCompatButton clarifyButton;
         private static ArrayList<CardView> selectedCards;
         private static boolean selecting = false;
 
@@ -68,18 +73,28 @@ public class InTrayItemsAdapter extends RecyclerView.Adapter<InTrayItemsAdapter.
             this.inTrayFragment = inTrayFragment;
 
             itemTextView = (TextView) view.findViewById(R.id.in_tray_item_text_view);
+
+            clarifyButton = (AppCompatButton) view.findViewById(R.id.clarify_button);
+
             selectedCards = new ArrayList<CardView>();
 
-            view.setOnClickListener(new View.OnClickListener() {
+            ConstraintLayout cardConstraintLayout = view.findViewById(R.id.item_constraint_layout);
+
+            cardConstraintLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
 
                     if (!selecting) {
                         Intent intent = new Intent(view.getContext(), InTrayNewItemActivity.class);
+
+                        InTrayItem selectedItem = inTrayFragment.getItems().get(getAdapterPosition());
+
                         intent.putExtra("requestCode", InTrayFragment.REQUEST_EDIT_ITEM);
                         intent.putExtra("item position", getAdapterPosition());
-                        intent.putExtra("item text", inTrayFragment.getItems().get(getAdapterPosition()).getText());
-                        intent.putExtra("item key", inTrayFragment.getItems().get(getAdapterPosition()).getKey());
+                        intent.putExtra("item text", selectedItem.getText());
+                        intent.putExtra("item key", selectedItem.getKey());
+
+                        intent.putExtra("item tags", selectedItem.getItemTags());
 
 
                         inTrayFragment.startActivity(intent);
@@ -111,7 +126,7 @@ public class InTrayItemsAdapter extends RecyclerView.Adapter<InTrayItemsAdapter.
                 }
             });
 
-            view.setOnLongClickListener(new View.OnLongClickListener() {
+            cardConstraintLayout.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View view) {
 
@@ -129,6 +144,13 @@ public class InTrayItemsAdapter extends RecyclerView.Adapter<InTrayItemsAdapter.
                     ((MainFragmentActivity)((Fragment)inTrayFragment).getActivity()).getMenu().findItem(R.id.menu_delete).setVisible(true);
 
                     return true;
+                }
+            });
+
+            clarifyButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Toast.makeText(inTrayFragment.getActivity(), "CLARIFY", Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -240,11 +262,5 @@ public class InTrayItemsAdapter extends RecyclerView.Adapter<InTrayItemsAdapter.
             }
         });
 
-
     }
-
-//    public void updateAdapters() {
-//        LayoutInflater layoutInflater = LayoutInflater.from(getContext());
-//        ItemTagsAdapter itemTagsAdapter = (ItemTagsAdapter) ((RecyclerView) layoutInflater.inflate(R.layout.activity_in_tray_new_item, false).findViewById(R.id.item_tags_recycler_view)).getListAdapter();
-//    }
 }

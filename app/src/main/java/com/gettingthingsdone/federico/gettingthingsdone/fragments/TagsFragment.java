@@ -74,6 +74,16 @@ public class TagsFragment extends Fragment {
             public void onClick(View view) {
                 Intent intent = new Intent(getActivity(), NewTagActivity.class);
                 intent.putExtra("requestCode", REQUEST_NEW_TAG);
+
+                ArrayList<String> tagTexts = new ArrayList<>();
+
+                for (int i = 0; i < TagsFragment.getTags().size(); ++i) {
+                    tagTexts.add(TagsFragment.getTags().get(i).getText());
+                }
+
+                intent.putExtra("tag text list", tagTexts);
+
+
                 startActivity(intent);
             }
         });
@@ -107,6 +117,7 @@ public class TagsFragment extends Fragment {
 
             for (int i = 0; i < tagsToRemove.size(); ++i) {
                 databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("tags").child(tagsToRemove.get(i).getKey()).removeValue();
+
             }
 
             TagsAdapter.ViewHolder.clearSelected();

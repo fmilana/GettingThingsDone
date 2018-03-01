@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/tags_coordinator_layout"
-    android:background="@color/colorLightGrey">
+    android:background="@color/colorLighterGrey">
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/tags_recycler_view"

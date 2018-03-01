@@ -1,6 +1,7 @@
 package com.gettingthingsdone.federico.gettingthingsdone;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -12,10 +13,13 @@ public class InTrayItem {
     private String key;
     private String text;
 
+    private HashMap<String, String> itemTags;
+
     public InTrayItem() {}
 
-    public InTrayItem(String text) {
+    public InTrayItem(String text, HashMap<String, String> itemTags) {
         this.text = text;
+        this.itemTags = itemTags;
     }
 
     public String getText() {
@@ -33,4 +37,13 @@ public class InTrayItem {
     public String getKey() {
         return key;
     }
+
+    public void setItemTags(HashMap<String, String> tagKeys) {
+        this.itemTags = tagKeys;
+    }
+
+    public HashMap<String, String> getItemTags() {
+        return itemTags;
+    }
+
 }
