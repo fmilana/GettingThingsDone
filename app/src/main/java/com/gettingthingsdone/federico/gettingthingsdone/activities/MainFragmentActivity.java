@@ -16,7 +16,9 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 
+import com.gettingthingsdone.federico.gettingthingsdone.Item;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.CalendarFragment;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.InTrayFragment;
@@ -27,6 +29,13 @@ import com.gettingthingsdone.federico.gettingthingsdone.fragments.TagsFragment;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.TrashFragment;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.WaitingForFragment;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
 
 /**
  * Created by Federico on 03-Feb-18.
@@ -50,6 +59,11 @@ public class MainFragmentActivity extends AppCompatActivity implements Navigatio
     private Menu menu;
 
     private FirebaseAuth firebaseAuth;
+    private DatabaseReference databaseReference;
+
+    private static ArrayList<Item> items;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,7 +72,27 @@ public class MainFragmentActivity extends AppCompatActivity implements Navigatio
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        firebaseAuth = FirebaseAuth.getInstance();
+        items = new ArrayList<>();
+
+        firebaseAuth = MainActivity.firebaseAuth;
+        databaseReference = MainActivity.databaseReference;
+
+        ///sets nav header email address to email address///
+        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("email").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                ((TextView)findViewById(R.id.nav_header_email_address)).setText(dataSnapshot.getValue(String.class));
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+
+        addFirebaseItemListener();
+
 
         if (firebaseAuth.getCurrentUser() == null) {
             Intent intent = new Intent(MainFragmentActivity.this, MainActivity.class);
@@ -169,5 +203,58 @@ public class MainFragmentActivity extends AppCompatActivity implements Navigatio
 
     public Menu getMenu() {
         return menu;
+    }
+
+    private void addFirebaseItemListener() {
+        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+
+                Item newItem = dataSnapshot.getValue(Item.class);
+                newItem.setKey(dataSnapshot.getKey());
+
+                items.add(newItem);
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                Item editedItem = dataSnapshot.getValue(Item.class);
+                editedItem.setKey(dataSnapshot.getKey());
+
+                for (int i = 0; i < items.size(); ++i) {
+                    if (items.get(i).getKey().equals(dataSnapshot.getKey())) {
+                        items.set(i, editedItem);
+                        break;
+                    }
+                }
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                System.out.println("REMOVING ITEM FROM ITEM LIST!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+
+                for (int i = 0; i < items.size(); ++i) {
+                    if (items.get(i).getKey().equals(dataSnapshot.getKey())) {
+                        items.remove(i);
+                        break;
+                    }
+                }
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    public static ArrayList<Item> getItems() {
+        return items;
     }
 }

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/colorLighterGrey"
+    android:padding="@dimen/standard_padding">
+
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/project_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <android.support.design.widget.TextInputEditText
+            android:id="@+id/project_title_edit_text"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:hint="@string/title"
+            android:maxLines="1"
+            android:textSize="30dp"
+            android:backgroundTint="@android:color/transparent"
+            android:windowSoftInputMode="stateVisible" />
+
+    </android.support.design.widget.TextInputLayout>
+
+    <EditText
+        android:id="@+id/project_description_edit_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:backgroundTint="@android:color/transparent"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:hint="@string/description"
+        android:inputType="text"
+        android:maxLines="5"
+        android:paddingLeft="5dp" />
+
+    <!--<View-->
+        <!--android:id="@+id/divider2"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="1dp"-->
+        <!--android:layout_marginBottom="8dp"-->
+        <!--android:background="@color/grey"-->
+        <!--app:layout_constraintBottom_toTopOf="@+id/items_textview"-->
+        <!--app:layout_constraintEnd_toEndOf="parent"-->
+        <!--app:layout_constraintStart_toStartOf="parent" />-->
+
+    <TextView
+        android:id="@+id/items_textview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="8dp"
+        android:paddingLeft="5dp"
+        android:text="@string/items"
+        android:textSize="20dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/project_layout" />
+
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/project_items_recycler_view"
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="vertical">
+
+        </android.support.v7.widget.RecyclerView>
+
+        <TextView
+            android:id="@+id/this_project_has_no_items_textview"
+            android:paddingLeft="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/this_project_has_no_items"/>
+    </android.support.constraint.ConstraintLayout>
+
+</LinearLayout>

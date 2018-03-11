@@ -31,11 +31,15 @@
             android:name=".activities.MainFragmentActivity"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
-            android:name=".activities.InTrayNewItemActivity"
+            android:name=".activities.ItemActivity"
             android:parentActivityName=".activities.MainActivity"/>
         <activity
-            android:name=".activities.NewTagActivity"
+            android:name=".activities.TagActivity"
             android:label="@string/title_activity_new_tag"></activity>
+        <activity
+            android:name=".activities.ProjectActivity"
+            android:label="@string/title_activity_new_tag"
+            android:windowSoftInputMode="adjustPan"></activity>
     </application>
 
 </manifest>

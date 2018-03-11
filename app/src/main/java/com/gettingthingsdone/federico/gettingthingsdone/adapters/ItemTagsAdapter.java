@@ -1,33 +1,26 @@
 package com.gettingthingsdone.federico.gettingthingsdone.adapters;
 
-import android.content.ClipData;
 import android.content.Intent;
-import android.provider.ContactsContract;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.gettingthingsdone.federico.gettingthingsdone.InTrayItem;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
 import com.gettingthingsdone.federico.gettingthingsdone.Tag;
-import com.gettingthingsdone.federico.gettingthingsdone.activities.InTrayNewItemActivity;
-import com.gettingthingsdone.federico.gettingthingsdone.activities.NewTagActivity;
+import com.gettingthingsdone.federico.gettingthingsdone.activities.ItemActivity;
+import com.gettingthingsdone.federico.gettingthingsdone.activities.MainActivity;
+import com.gettingthingsdone.federico.gettingthingsdone.activities.TagActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.TagsFragment;
+import com.gettingthingsdone.federico.gettingthingsdone.fragments.TrashFragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
-import java.sql.SQLOutput;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 
 /**
@@ -38,7 +31,9 @@ public class ItemTagsAdapter extends RecyclerView.Adapter<ItemTagsAdapter.ViewHo
 
     private static ArrayList<Tag> tags;
 
-    private static InTrayNewItemActivity inTrayNewItemActivity;
+    private static int requestCode;
+
+    private static ItemActivity itemActivity;
 
     private FirebaseAuth firebaseAuth;
     private DatabaseReference databaseReference;
@@ -54,43 +49,33 @@ public class ItemTagsAdapter extends RecyclerView.Adapter<ItemTagsAdapter.ViewHo
 
     private static boolean newTagJustAdded;
 
-    public ItemTagsAdapter(final InTrayNewItemActivity inTrayNewItemActivity, final ArrayList<Tag> tags) {
+    public ItemTagsAdapter(final ItemActivity itemActivity, final ArrayList<Tag> tags, final int requestCode) {
         this.tags = tags;
 
-        recyclerView = inTrayNewItemActivity.findViewById(R.id.item_tags_recycler_view);
+        this.requestCode = requestCode;
+
+        recyclerView = itemActivity.findViewById(R.id.item_tags_recycler_view);
 
         newTagJustAdded = false;
+        this.itemActivity = itemActivity;
 
-        System.out.println("TAGS = ");
-        for (int i = 0; i < this.tags.size(); ++i) {
-            System.out.println(this.tags.get(i).getText());
-        }
-
-        if (this.tags.size() == 0) {
-            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        }
-
-        this.inTrayNewItemActivity = inTrayNewItemActivity;
-
-        itemTags = (HashMap<String, String>) inTrayNewItemActivity.getIntent().getSerializableExtra("item tags");
+        itemTags = (HashMap<String, String>) itemActivity.getIntent().getSerializableExtra("item tags");
 
 //        selectedTexts = new ArrayList<>();
         selectedViews = new ArrayList<>();
         selectedIndexes = new ArrayList<>();
 
-        firebaseAuth = FirebaseAuth.getInstance();
-        databaseReference = FirebaseDatabase.getInstance().getReference();
+        firebaseAuth = MainActivity.firebaseAuth;
+        databaseReference = MainActivity.databaseReference;
 
         databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("tags").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
 
                 //if tag already exists, then return;
-                for (int i = 0; i < inTrayNewItemActivity.getTags().size(); ++i) {
+                for (int i = 0; i < itemActivity.getTags().size(); ++i) {
 
-                    if (inTrayNewItemActivity.getTags().get(i).getKey().equals(dataSnapshot.getKey())) {
-
-                        System.out.println("NOT ADDING TAG WITH KEY " + inTrayNewItemActivity.getTags().get(i).getKey());
+                    if (itemActivity.getTags().get(i).getKey().equals(dataSnapshot.getKey())) {
                         return;
                     }
                 }
@@ -98,9 +83,19 @@ public class ItemTagsAdapter extends RecyclerView.Adapter<ItemTagsAdapter.ViewHo
                 Tag newItemTag = dataSnapshot.getValue(Tag.class);
                 newItemTag.setKey(dataSnapshot.getKey());
 
-                inTrayNewItemActivity.removeAddNewTag();
-                inTrayNewItemActivity.getTags().add(newItemTag);
-                inTrayNewItemActivity.addAddNewTag();
+
+                if (requestCode == TrashFragment.REQUEST_VIEW_ITEM) {
+                    if (itemTags != null) {
+                        if (itemTags.containsValue(newItemTag.getText())) {
+                            itemActivity.getThisItemHasNoTags().setVisibility(View.GONE);
+                            itemActivity.getTags().add(newItemTag);
+                        }
+                    }
+                } else {
+                    itemActivity.removeAddNewTag();
+                    itemActivity.getTags().add(newItemTag);
+                    itemActivity.addAddNewTag();
+                }
 
                 notifyDataSetChanged();
             }
@@ -110,9 +105,9 @@ public class ItemTagsAdapter extends RecyclerView.Adapter<ItemTagsAdapter.ViewHo
                 Tag editedTag = dataSnapshot.getValue(Tag.class);
                 editedTag.setKey(dataSnapshot.getKey());
 
-                for (int i = 0; i < inTrayNewItemActivity.getTags().size(); ++i) {
-                    if (inTrayNewItemActivity.getTags().get(i).getKey().equals(dataSnapshot.getKey())) {
-                        inTrayNewItemActivity.getTags().set(i, editedTag);
+                for (int i = 0; i < itemActivity.getTags().size(); ++i) {
+                    if (itemActivity.getTags().get(i).getKey().equals(dataSnapshot.getKey())) {
+                        itemActivity.getTags().set(i, editedTag);
                         break;
                     }
                 }
@@ -122,9 +117,9 @@ public class ItemTagsAdapter extends RecyclerView.Adapter<ItemTagsAdapter.ViewHo
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
-                for (int i = 0; i < inTrayNewItemActivity.getTags().size(); ++i) {
-                    if (inTrayNewItemActivity.getTags().get(i).getKey().equals(dataSnapshot.getKey())) {
-                        inTrayNewItemActivity.getTags().remove(i);
+                for (int i = 0; i < itemActivity.getTags().size(); ++i) {
+                    if (itemActivity.getTags().get(i).getKey().equals(dataSnapshot.getKey())) {
+                        itemActivity.getTags().remove(i);
                     }
                 }
 
@@ -147,7 +142,7 @@ public class ItemTagsAdapter extends RecyclerView.Adapter<ItemTagsAdapter.ViewHo
     @Override
     public ItemTagsAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         cardView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_tag, parent, false);
-        ViewHolder viewHolder = new ViewHolder(inTrayNewItemActivity, cardView);
+        ViewHolder viewHolder = new ViewHolder(itemActivity, cardView);
 
 
         return viewHolder;
@@ -164,21 +159,22 @@ public class ItemTagsAdapter extends RecyclerView.Adapter<ItemTagsAdapter.ViewHo
 
         selectTagIfSelected(cardView, holder.itemTagTextView, holder);
 
+        if (requestCode != TrashFragment.REQUEST_VIEW_ITEM) {
 
-        if (newTagJustAdded && position == inTrayNewItemActivity.getTags().size()-2) {
+            if (newTagJustAdded && position == itemActivity.getTags().size() - 2) {
+                holder.itemTagTextView.setBackgroundColor(holder.itemTagTextView.getResources().getColor(R.color.colorAccent));
 
-            holder.itemTagTextView.setBackgroundColor(holder.itemTagTextView.getResources().getColor(R.color.colorAccent));
+                selectedIndexes.add(position);
+                selectedViews.add(cardView);
 
-            selectedIndexes.add(position);
-            selectedViews.add(recyclerView.getChildAt(position));
-
-            newTagJustAdded = false;
-        }
+                newTagJustAdded = false;
+            }
 
 
-        if (tag.getKey().equals("addNewTag")) {
-            holder.itemTagTextView.setBackgroundColor(holder.itemTagTextView.getResources().getColor(R.color.colorPrimary));
-            holder.itemTagTextView.setTextColor(holder.itemTagTextView.getResources().getColor(R.color.colorWhite));
+            if (tag.getKey().equals("addNewTag")) {
+                holder.itemTagTextView.setBackgroundColor(holder.itemTagTextView.getResources().getColor(R.color.colorPrimary));
+                holder.itemTagTextView.setTextColor(holder.itemTagTextView.getResources().getColor(R.color.colorWhite));
+            }
         }
     }
 
@@ -190,6 +186,9 @@ public class ItemTagsAdapter extends RecyclerView.Adapter<ItemTagsAdapter.ViewHo
 
     public void selectTagIfSelected(View cardView, TextView itemTagTextView, ViewHolder holder) {
         if (itemTags != null) {
+
+            itemActivity.getNotificationSwitch().setEnabled(true);
+
             if (itemTags.containsValue(itemTagTextView.getText().toString().trim())) {
                 itemTagTextView.setBackgroundColor(itemTagTextView.getResources().getColor(R.color.colorAccent));
 
@@ -208,71 +207,69 @@ public class ItemTagsAdapter extends RecyclerView.Adapter<ItemTagsAdapter.ViewHo
         newTagJustAdded = added;
     }
 
-    public boolean getNewTagJustAdded() {
-        return newTagJustAdded;
-    }
-
-
-
-
-
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         private TextView itemTagTextView;
 
-        private View cardView;
+        private static ItemActivity itemActivity;
 
-        private static InTrayNewItemActivity inTrayNewItemActivity;
-
-        public ViewHolder(final InTrayNewItemActivity inTrayNewItemActivity, View cardView) {
+        public ViewHolder(final ItemActivity itemActivity, View cardView) {
             super(cardView);
 
-            this.cardView = cardView;
-
-            this.inTrayNewItemActivity = inTrayNewItemActivity;
+            this.itemActivity = itemActivity;
 
             itemTagTextView = (TextView) cardView.findViewById(R.id.item_tag_text_view);
 
-            cardView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
+            if (requestCode != TrashFragment.REQUEST_VIEW_ITEM) {
 
-                    ///if new tag + is clicked///
-                    if (getAdapterPosition() == (tags.size()-1)) {
+                cardView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
 
-                        Intent intent = new Intent(inTrayNewItemActivity, NewTagActivity.class);
-                        intent.putExtra("requestCode", TagsFragment.REQUEST_NEW_TAG);
+                        ///if new tag + is clicked///
+                        if (getAdapterPosition() == (tags.size() - 1)) {
 
-                        ArrayList<String> tagTexts = new ArrayList<>();
+                            Intent intent = new Intent(itemActivity, TagActivity.class);
+                            intent.putExtra("requestCode", TagsFragment.REQUEST_NEW_TAG);
 
-                        for (int i = 0; i < tags.size()-1; ++i) {
-                            tagTexts.add(tags.get(i).getText());
-                        }
+                            ArrayList<String> tagTexts = new ArrayList<>();
 
-                        intent.putExtra("tag text list", tagTexts);
+                            for (int i = 0; i < tags.size() - 1; ++i) {
+                                tagTexts.add(tags.get(i).getText());
+                            }
 
-                        System.out.println("STARTING ACTIVITY WITH REQUESTNEWTAG = " + TagsFragment.REQUEST_NEW_TAG);
+                            intent.putExtra("tag text list", tagTexts);
 
-                        inTrayNewItemActivity.startActivityForResult(intent, TagsFragment.REQUEST_NEW_TAG);
+                            itemActivity.startActivityForResult(intent, TagsFragment.REQUEST_NEW_TAG);
 
-                    } else {
-                        ///selecting///
-                        if (!selectedViews.contains(view)) {
-                            itemTagTextView.setBackgroundColor(view.getResources().getColor(R.color.colorAccent));
-
-                            selectedIndexes.add(getAdapterPosition());
-                            selectedViews.add(view);
-
-                        ///deselecting///
                         } else {
-                            itemTagTextView.setBackgroundColor(view.getResources().getColor(R.color.colorWhite));
+                            ///selecting///
+                            if (!selectedViews.contains(view)) {
+                                itemTagTextView.setBackgroundColor(view.getResources().getColor(R.color.colorAccent));
 
-                            selectedIndexes.remove(new Integer(getAdapterPosition()));
-                            selectedViews.remove(view);
+                                if (requestCode != TrashFragment.REQUEST_VIEW_ITEM && selectedViews.size() == 0) {
+                                    itemActivity.getNotificationSwitch().setEnabled(true);
+                                }
+
+                                selectedIndexes.add(getAdapterPosition());
+                                selectedViews.add(view);
+
+                                ///deselecting///
+                            } else {
+                                itemTagTextView.setBackgroundColor(view.getResources().getColor(R.color.colorWhite));
+
+                                if (selectedViews.size() == 1) {
+                                    itemActivity.getNotificationSwitch().setChecked(false);
+                                    itemActivity.getNotificationSwitch().setEnabled(false);
+                                }
+
+                                selectedIndexes.remove(new Integer(getAdapterPosition()));
+                                selectedViews.remove(view);
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
         }
 
 

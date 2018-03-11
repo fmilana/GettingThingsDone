@@ -22,56 +22,164 @@
             android:maxLines="1"
             android:inputType="text"
             android:windowSoftInputMode="stateVisible"
-            android:layout_marginBottom="20dp"/>
+            android:backgroundTint="@android:color/transparent"
+            />
 
     </android.support.design.widget.TextInputLayout>
 
+    <View
+        android:id="@+id/divider1"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/grey"
+        app:layout_constraintTop_toBottomOf="@id/new_tag_input_text_input_layout"/>
+
+    <TextView
+        android:id="@+id/days_of_the_week_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="40dp"
+        android:text="@string/days_of_the_week"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/new_tag_input_text_input_layout" />
+
     <LinearLayout
+        android:id="@+id/days_of_the_week_layout"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginTop="5dp"
+        android:orientation="horizontal"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@id/days_of_the_week_text">
+
+        <ToggleButton
+            android:id="@+id/monday_toggle_button"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_marginLeft="3dp"
+            android:layout_marginRight="3dp"
+            android:textOn="M"
+            android:textOff="M"
+            style="@style/toggleButton"
+            android:background="@drawable/toggle_background"/>
+        <ToggleButton
+            android:id="@+id/tuesday_toggle_button"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_marginLeft="3dp"
+            android:layout_marginRight="3dp"
+            android:textOn="T"
+            android:textOff="T"
+            style="@style/toggleButton"
+            android:background="@drawable/toggle_background"/>
+        <ToggleButton
+            android:id="@+id/wednesday_toggle_button"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_marginLeft="3dp"
+            android:layout_marginRight="3dp"
+            android:textOn="W"
+            android:textOff="W"
+            style="@style/toggleButton"
+            android:background="@drawable/toggle_background"/>
+        <ToggleButton
+            android:id="@+id/thursday_toggle_button"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_marginLeft="3dp"
+            android:layout_marginRight="3dp"
+            android:textOn="T"
+            android:textOff="T"
+            style="@style/toggleButton"
+            android:background="@drawable/toggle_background"/>
+        <ToggleButton
+            android:id="@+id/friday_toggle_button"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_marginLeft="3dp"
+            android:layout_marginRight="3dp"
+            android:textOn="F"
+            android:textOff="F"
+            style="@style/toggleButton"
+            android:background="@drawable/toggle_background"/>
+        <ToggleButton
+            android:id="@+id/saturday_toggle_button"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_marginLeft="3dp"
+            android:layout_marginRight="3dp"
+            android:textOn="S"
+            android:textOff="S"
+            style="@style/toggleButton"
+            android:background="@drawable/toggle_background"/>
+        <ToggleButton
+            android:id="@+id/sunday_toggle_button"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_marginLeft="3dp"
+            android:layout_marginRight="3dp"
+            android:textOn="S"
+            android:textOff="S"
+            style="@style/toggleButton"
+            android:background="@drawable/toggle_background"/>
+    </LinearLayout>
+
+    <View
+        android:id="@+id/divider2"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="15dp"
+        android:background="@color/grey"
+        app:layout_constraintTop_toBottomOf="@id/days_of_the_week_layout"/>
+
+    <LinearLayout
+        android:id="@+id/time_and_location_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:orientation="vertical"
+        android:layout_marginTop="5dp"
         android:weightSum="10"
-        app:layout_constraintTop_toBottomOf="@id/new_tag_input_text_input_layout">
+        app:layout_constraintTop_toBottomOf="@id/divider2">
 
-        <android.support.design.widget.TextInputLayout
-            android:id="@+id/new_tag_time_text_input_layout"
+        <Button
+            android:id="@+id/new_tag_time_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="7">
+            android:background="@android:color/transparent"
+            android:drawableLeft="@drawable/ic_time"
+            android:drawablePadding="10dp"
+            android:text="@string/time"
+            android:textStyle="normal"
+            android:textAllCaps="false"
+            android:textAlignment="textStart"
+            android:textColor="@color/grey"
+            android:paddingLeft="10dp"
+            android:layout_marginTop="5dp"/>
 
-            <android.support.design.widget.TextInputEditText
-                android:id="@+id/new_tag_time_input_edit_text"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:cursorVisible="false"
-                android:focusable="false"
-                android:focusableInTouchMode="false"
-                android:drawableLeft="@drawable/ic_time"
-                android:hint="@string/time"
-                android:maxLines="1"
-                android:inputType="text"/>
+        <View
+            android:id="@+id/divider3"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="5dp"
+            android:background="@color/grey"
+            app:layout_constraintTop_toBottomOf="@id/days_of_the_week_layout"/>
 
-        </android.support.design.widget.TextInputLayout>
-
-        <android.support.design.widget.TextInputLayout
-            android:id="@+id/new_tag_location_text_input_layout"
+        <Button
+            android:id="@+id/new_tag_location_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="3">
-
-            <android.support.design.widget.TextInputEditText
-                android:id="@+id/new_tag_location_input_edit_text"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:cursorVisible="false"
-                android:focusable="false"
-                android:focusableInTouchMode="false"
-                android:drawableLeft="@drawable/ic_location"
-                android:hint="@string/location"
-                android:maxLines="1"
-                android:inputType="text"/>
-
-        </android.support.design.widget.TextInputLayout>
+            android:background="@android:color/transparent"
+            android:drawableLeft="@drawable/ic_location"
+            android:drawablePadding="10dp"
+            android:text="@string/location"
+            android:textAlignment="textStart"
+            android:textAllCaps="false"
+            android:textColor="@color/grey"
+            android:paddingLeft="10dp"
+            android:layout_marginTop="5dp"/>
 
     </LinearLayout>
 

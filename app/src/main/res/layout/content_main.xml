@@ -8,8 +8,6 @@
     tools:context="com.gettingthingsdone.federico.gettingthingsdone.activities.MainActivity"
     tools:showIn="@layout/app_bar_main"
     android:id="@+id/content_main_constraint_layout"
-    android:background="@color/colorLighterGrey"
-    android:paddingLeft="3dp"
-    android:paddingRight="3dp">
+    android:background="@color/colorLighterGrey">
 
 </android.support.constraint.ConstraintLayout>

@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!--<color name="colorPrimary">#009688</color>-->
-    <!--<color name="colorPrimaryDark">#00796B</color>-->
-    <!--<color name="colorPrimaryLight">#B2DFDB</color>-->
-    <!--<color name="colorAccent">#FFC107</color>-->
 
     <color name="colorBlack">#000000</color>
     <color name="colorWhite">#FFFFFF</color>
@@ -12,14 +8,26 @@
 
     <color name="colorLightGrey2">#BDBDBD</color>
 
+    <color name="grey">@android:color/darker_gray</color>
 
+    <color name="colorClarifyButtonSelected">#A0A0A0</color>
+
+
+    <!--<color name="colorPrimary">#00838f</color>-->
+    <!--<color name="colorPrimaryLight">#4fb3bf</color>-->
+    <!--<color name="colorPrimaryDark">#005662</color>-->
+    <!--<color name="colorAccent">#ffc400</color>-->
+    <!--<color name="colorAccentLight">#fff64f</color>-->
+    <!--<color name="colorAccentDark">#c79400</color>-->
+    <!--<color name="colorPrimaryText">#ffffff</color>-->
+    <!--<color name="colorSecondaryText">#000000</color>-->
 
     <color name="colorPrimary">#00838f</color>
     <color name="colorPrimaryLight">#4fb3bf</color>
     <color name="colorPrimaryDark">#005662</color>
-    <color name="colorAccent">#ffc400</color>
-    <color name="colorAccentLight">#fff64f</color>
-    <color name="colorAccentDark">#c79400</color>
+    <color name="colorAccent">#ff8f00</color>
+    <color name="colorAccentLight">#ffc046</color>
+    <color name="colorAccentDark">#c56000</color>
     <color name="colorPrimaryText">#ffffff</color>
     <color name="colorSecondaryText">#000000</color>
 

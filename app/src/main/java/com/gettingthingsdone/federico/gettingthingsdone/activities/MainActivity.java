@@ -26,6 +26,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.gettingthingsdone.federico.gettingthingsdone.Item;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.CalendarFragment;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.InTrayFragment;
@@ -38,7 +39,13 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,10 +54,11 @@ public class MainActivity extends AppCompatActivity {
     private EditText emailEditText;
     private EditText passwordEditText;
     private Button loginButton;
-    private TextView registerTextView;
+    private Button registerButton;
     private ProgressBar progressBar;
 
-    private FirebaseAuth firebaseAuth;
+    public static DatabaseReference databaseReference;
+    public static FirebaseAuth firebaseAuth;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -59,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
 
         getSupportActionBar().hide();
 
+        databaseReference = FirebaseDatabase.getInstance().getReference();
         firebaseAuth = FirebaseAuth.getInstance();
 
         //if user is already logged in
@@ -71,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
         emailEditText = (EditText) findViewById(R.id.insert_email_address);
         passwordEditText = (EditText) findViewById(R.id.insert_password);
         loginButton = (Button) findViewById(R.id.log_in_button);
-        registerTextView = (TextView) findViewById(R.id.register_text);
+        registerButton = (Button) findViewById(R.id.register_button);
         progressBar = (ProgressBar) findViewById(R.id.log_in_progress_bar);
 
 
@@ -82,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        registerTextView.setOnClickListener(new View.OnClickListener() {
+        registerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
@@ -143,4 +152,5 @@ public class MainActivity extends AppCompatActivity {
         Matcher matcher = pattern.matcher(email);
         return matcher.matches();
     }
+
 }

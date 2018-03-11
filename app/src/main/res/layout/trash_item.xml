@@ -8,7 +8,7 @@
 
     <android.support.v7.widget.CardView
         xmlns:card_view="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/in_tray_item_card_view"
+        android:id="@+id/trash_item_card_view"
         android:layout_gravity="center"
         android:layout_width="match_parent"
         android:layout_height="140dp"
@@ -19,7 +19,7 @@
         app:cardPreventCornerOverlap="false">
 
         <android.support.constraint.ConstraintLayout
-            android:id="@+id/item_constraint_layout"
+            android:id="@+id/trash_item_constraint_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clickable="true"
@@ -27,7 +27,7 @@
             android:background="?attr/selectableItemBackground">
 
             <TextView
-                android:id="@+id/in_tray_item_text_view"
+                android:id="@+id/trash_item_text_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="@dimen/standard_padding"
@@ -35,20 +35,20 @@
                 android:padding="@dimen/standard_padding"
                 android:textColor="@color/colorBlack"
                 android:textSize="16dp"
-                card_view:layout_constraintBottom_toTopOf="@+id/clarify_button"
-                card_view:layout_constraintTop_toTopOf="@id/item_constraint_layout" />
+                card_view:layout_constraintBottom_toTopOf="@+id/restore_button"
+                card_view:layout_constraintTop_toTopOf="@id/trash_item_constraint_layout" />
 
             <android.support.v7.widget.AppCompatButton
-                android:id="@+id/clarify_button"
+                android:id="@+id/restore_button"
                 style="@style/Base.Widget.AppCompat.Button.Borderless.Colored"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/clarify"
+                android:text="@string/restore"
                 android:textColor="@color/colorPrimary"
                 android:background="@color/colorLightGrey"
                 android:clickable="true"
                 android:focusable="true"
-                card_view:layout_constraintBottom_toBottomOf="@id/item_constraint_layout"
+                card_view:layout_constraintBottom_toBottomOf="@id/trash_item_constraint_layout"
                 />
         </android.support.constraint.ConstraintLayout>
 

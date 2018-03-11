@@ -50,9 +50,8 @@ public class RegisterActivity extends AppCompatActivity {
 
         getSupportActionBar().hide();
 
-        firebaseAuth = FirebaseAuth.getInstance();
-
-        databaseReference = FirebaseDatabase.getInstance().getReference();
+        firebaseAuth = MainActivity.firebaseAuth;
+        databaseReference = MainActivity.databaseReference;
 
         emailEditText = (EditText) findViewById(R.id.register_email_address);
         passwordEditText = (EditText) findViewById(R.id.register_password);

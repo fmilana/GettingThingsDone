@@ -1,16 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/calendar_constraint_layout"
     android:background="@color/colorLighterGrey"
-    android:padding="@dimen/standard_padding">
+    android:padding="@dimen/item_list_padding">
 
-    <TextView
+    <CalendarView
+        android:id="@+id/calendar_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="Calendar"
-        android:gravity="center"/>
+        android:layout_height="wrap_content">
+
+    </CalendarView>
+
+    <android.support.constraint.ConstraintLayout
+        android:padding="@dimen/standard_padding"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/calendar_view">
+
+        <TextView
+            android:id="@+id/items_textview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingLeft="5dp"
+            android:paddingBottom="8dp"
+            android:text="@string/items"
+            android:textSize="20dp" />
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/day_items_recycler_view"
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/items_textview"
+            android:scrollbars="vertical">
+
+        </android.support.v7.widget.RecyclerView>
+
+        <TextView
+            android:id="@+id/this_day_has_no_items_textview"
+            android:paddingLeft="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/items_textview"
+            android:text="@string/this_project_has_no_items"/>
+
+    </android.support.constraint.ConstraintLayout>
 
 
 

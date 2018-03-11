@@ -12,14 +12,17 @@ public class Tag {
 
     private String text;
     private String time;
+    private String daysOfTheWeek;
     private String locationAddress;
     private String locationKey;
 
-
-    public Tag() {}
+    public Tag() {
+        daysOfTheWeek = "0000000";
+    }
 
     public Tag(String text) {
         this.text = text;
+        daysOfTheWeek = "0000000";
     }
 
     public String getText() {
@@ -40,6 +43,14 @@ public class Tag {
 
     public String getTime() {
         return time;
+    }
+
+    public void setDaysOfTheWeek(String daysOfTheWeek) {
+        this.daysOfTheWeek = daysOfTheWeek;
+    }
+
+    public String getDaysOfTheWeek() {
+        return daysOfTheWeek;
     }
 
     public void setLocationAddress(String locationAddress) {

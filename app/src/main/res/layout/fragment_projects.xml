@@ -4,12 +4,21 @@
     android:layout_height="match_parent"
     android:id="@+id/projects_constraint_layout"
     android:background="@color/colorLighterGrey"
-    android:padding="@dimen/standard_padding">
+    android:padding="@dimen/item_list_padding">
 
     <TextView
+        android:id="@+id/empty_project_list_textview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="Projects"
+        android:text="@string/projects_is_empty"
         android:gravity="center"/>
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/projects_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="vertical">
+
+    </android.support.v7.widget.RecyclerView>
 
 </android.support.constraint.ConstraintLayout>

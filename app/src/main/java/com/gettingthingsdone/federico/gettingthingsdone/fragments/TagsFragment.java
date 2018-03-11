@@ -5,10 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -16,17 +13,18 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.gettingthingsdone.federico.gettingthingsdone.Item;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
 import com.gettingthingsdone.federico.gettingthingsdone.Tag;
+import com.gettingthingsdone.federico.gettingthingsdone.activities.MainActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.MainFragmentActivity;
-import com.gettingthingsdone.federico.gettingthingsdone.activities.NewTagActivity;
+import com.gettingthingsdone.federico.gettingthingsdone.activities.TagActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.adapters.TagsAdapter;
 import com.google.android.flexbox.FlexDirection;
 import com.google.android.flexbox.FlexboxLayoutManager;
 import com.google.android.flexbox.JustifyContent;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 
@@ -59,8 +57,8 @@ public class TagsFragment extends Fragment {
 
         tags = new ArrayList<>();
 
-        firebaseAuth = FirebaseAuth.getInstance();
-        databaseReference = FirebaseDatabase.getInstance().getReference();
+        firebaseAuth = MainActivity.firebaseAuth;
+        databaseReference = MainActivity.databaseReference;
 
         return view;
     }
@@ -72,13 +70,13 @@ public class TagsFragment extends Fragment {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(getActivity(), NewTagActivity.class);
+                Intent intent = new Intent(getActivity(), TagActivity.class);
                 intent.putExtra("requestCode", REQUEST_NEW_TAG);
 
                 ArrayList<String> tagTexts = new ArrayList<>();
 
-                for (int i = 0; i < TagsFragment.getTags().size(); ++i) {
-                    tagTexts.add(TagsFragment.getTags().get(i).getText());
+                for (int i = 0; i < tags.size(); ++i) {
+                    tagTexts.add(tags.get(i).getText());
                 }
 
                 intent.putExtra("tag text list", tagTexts);
@@ -106,18 +104,28 @@ public class TagsFragment extends Fragment {
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.menu_delete) {
+    public boolean onOptionsItemSelected(MenuItem menuItem) {
+        if (menuItem.getItemId() == R.id.menu_delete) {
 
-            ArrayList<Tag> tagsToRemove = new ArrayList<>();
+            final ArrayList<Tag> tagsToRemove = new ArrayList<>();
 
             for (int i = 0; i < ((TagsAdapter) adapter).getSelectedIndexes().size(); ++i) {
                 tagsToRemove.add(tags.get(((TagsAdapter) adapter).getSelectedIndexes().get(i)));
             }
 
-            for (int i = 0; i < tagsToRemove.size(); ++i) {
-                databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("tags").child(tagsToRemove.get(i).getKey()).removeValue();
 
+            for (int i = 0; i < tagsToRemove.size(); ++i) {
+                Tag tagToRemove = tagsToRemove.get(i);
+
+                /////removes tag from items////
+                for (int j = 0; j < MainFragmentActivity.getItems().size(); ++j) {
+                    Item item = MainFragmentActivity.getItems().get(j);
+
+                    databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(item.getKey()).child("itemTags").child(tagToRemove.getKey()).removeValue();
+                }
+
+                ////removes tag from tags////
+                databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("tags").child(tagToRemove.getKey()).removeValue();
             }
 
             TagsAdapter.ViewHolder.clearSelected();
@@ -127,10 +135,11 @@ public class TagsFragment extends Fragment {
             TagsAdapter.ViewHolder.stopSelecting();
         }
 
-        return super.onOptionsItemSelected(item);
+        return super.onOptionsItemSelected(menuItem);
     }
 
     public static ArrayList<Tag> getTags() {
         return tags;
     }
+
 }

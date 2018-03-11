@@ -5,18 +5,9 @@ import android.app.AlertDialog;
 import android.app.TimePickerDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.PorterDuff;
 import android.os.Bundle;
-import android.provider.ContactsContract;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.design.widget.TextInputEditText;
-import android.support.v4.content.ContextCompat;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.AppCompatButton;
-import android.support.v7.widget.Toolbar;
-import android.text.InputType;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -26,31 +17,32 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TimePicker;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.LocationCallback;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
 import com.gettingthingsdone.federico.gettingthingsdone.Tag;
-import com.gettingthingsdone.federico.gettingthingsdone.fragments.InTrayFragment;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.TagsFragment;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.android.gms.location.places.GeoDataClient;
 import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.PlaceBufferResponse;
+import com.google.android.gms.location.places.Places;
 import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 
-public class NewTagActivity extends AppCompatActivity {
+public class TagActivity extends AppCompatActivity {
 
     private FirebaseAuth firebaseAuth;
     private DatabaseReference databaseReference;
@@ -58,15 +50,29 @@ public class NewTagActivity extends AppCompatActivity {
 
     private EditText textEditText;
 
-    private TextInputEditText timeEditText;
-    private TextInputEditText locationEditText;
+    private ToggleButton mondayToggleButton;
+    private ToggleButton tuesdayToggleButton;
+    private ToggleButton wednesdayToggleButton;
+    private ToggleButton thursdayToggleButton;
+    private ToggleButton fridayToggleButton;
+    private ToggleButton saturdayToggleButton;
+    private ToggleButton sundayToggleButton;
+
+    private Button timeButton;
+    private Button locationButton;
+
+    private boolean timeSet;
+    private boolean locationSet;
 
     private String time;
+    private String locationAddress;
     private Place place;
 
     private String oldLocationKey;
 
     private GeoLocation selectedLocation;
+
+    private Tag editedTag;
 
 
     private static final int PLACE_PICKER_REQUEST = 1;
@@ -80,17 +86,30 @@ public class NewTagActivity extends AppCompatActivity {
 
         textEditText = (EditText) findViewById(R.id.new_tag_input_edit_text);
 
-        textEditText.requestFocus();
-        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        if (getIntent().getIntExtra("requestCode", -1) == TagsFragment.REQUEST_NEW_TAG) {
+            textEditText.requestFocus();
+            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        } else if (getIntent().getIntExtra("requestCode", -1) == TagsFragment.REQUEST_EDIT_TAG) {
+            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+        }
 
-        timeEditText = (TextInputEditText) findViewById(R.id.new_tag_time_input_edit_text);
-        locationEditText = (TextInputEditText) findViewById(R.id.new_tag_location_input_edit_text);
 
-        timeEditText.setInputType(InputType.TYPE_NULL);
-        locationEditText.setInputType(InputType.TYPE_NULL);
+        mondayToggleButton = (ToggleButton) findViewById(R.id.monday_toggle_button);
+        tuesdayToggleButton = (ToggleButton) findViewById(R.id.tuesday_toggle_button);
+        wednesdayToggleButton = (ToggleButton) findViewById(R.id.wednesday_toggle_button);
+        thursdayToggleButton = (ToggleButton) findViewById(R.id.thursday_toggle_button);
+        fridayToggleButton = (ToggleButton) findViewById(R.id.friday_toggle_button);
+        saturdayToggleButton = (ToggleButton) findViewById(R.id.saturday_toggle_button);
+        sundayToggleButton = (ToggleButton) findViewById(R.id.sunday_toggle_button);
 
-        firebaseAuth = FirebaseAuth.getInstance();
-        databaseReference = FirebaseDatabase.getInstance().getReference();
+        timeButton = (Button) findViewById(R.id.new_tag_time_button);
+        locationButton = (Button) findViewById(R.id.new_tag_location_button);
+
+        timeSet = false;
+        locationSet = false;
+
+        firebaseAuth = MainActivity.firebaseAuth;
+        databaseReference = MainActivity.databaseReference;
 
         geoFire = new GeoFire(databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("taglocations"));
 
@@ -103,11 +122,44 @@ public class NewTagActivity extends AppCompatActivity {
             textEditText.setText(getIntent().getStringExtra("tag text"));
             textEditText.setSelection(textEditText.getText().length());
 
+            String tagDaysOfTheWeek = getIntent().getStringExtra("tag daysoftheweek");
+
+            if (tagDaysOfTheWeek.charAt(0) == '1') {
+                mondayToggleButton.setChecked(true);
+            }
+            if (tagDaysOfTheWeek.charAt(1) == '1') {
+                tuesdayToggleButton.setChecked(true);
+            }
+            if (tagDaysOfTheWeek.charAt(2) == '1') {
+                wednesdayToggleButton.setChecked(true);
+            }
+            if (tagDaysOfTheWeek.charAt(3) == '1') {
+                thursdayToggleButton.setChecked(true);
+            }
+            if (tagDaysOfTheWeek.charAt(4) == '1') {
+                fridayToggleButton.setChecked(true);
+            }
+            if (tagDaysOfTheWeek.charAt(5) == '1') {
+                saturdayToggleButton.setChecked(true);
+            }
+            if (tagDaysOfTheWeek.charAt(6) == '1') {
+                sundayToggleButton.setChecked(true);
+            }
+
             time = getIntent().getStringExtra("tag time");
+            locationAddress = getIntent().getStringExtra("tag location address");
 
-            timeEditText.setText(time);
+            if (time != null) {
+                timeButton.setText(time);
+                timeButton.setTextColor(getResources().getColor(R.color.colorBlack));
+                timeSet = true;
+            }
 
-            locationEditText.setText(getIntent().getStringExtra("tag location address"));
+            if (locationAddress != null) {
+                locationButton.setText(locationAddress);
+                locationButton.setTextColor(getResources().getColor(R.color.colorBlack));
+                locationSet = true;
+            }
 
             setTitle(R.string.edit_tag);
 
@@ -116,27 +168,37 @@ public class NewTagActivity extends AppCompatActivity {
             setTitle(R.string.new_tag);
         }
 
-        timeEditText.setOnClickListener(new View.OnClickListener() {
+        timeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
-                if (timeEditText.getText().length() == 0) {
+                if (!timeSet) {
 
                     selectTagTime();
 
                 } else {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(NewTagActivity.this);
+                    AlertDialog.Builder builder = new AlertDialog.Builder(TagActivity.this);
 
-                    builder.setTitle(time);
+                    builder.setTitle(R.string.tag_time_alert_title);
+                    builder.setMessage(time);
 
-                    builder.setNegativeButton(R.string.remove, new DialogInterface.OnClickListener() {
+                    builder.setNeutralButton(R.string.remove, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
                             time = null;
 
-                            timeEditText.getText().clear();
+                            timeButton.setText(R.string.time);
+                            timeButton.setTextColor(getResources().getColor(R.color.grey));
+                            timeSet = false;
 
                             selectedLocation = null;
+
+                        }
+                    });
+
+                    builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
 
                         }
                     });
@@ -157,32 +219,40 @@ public class NewTagActivity extends AppCompatActivity {
             }
         });
 
-        locationEditText.setOnClickListener(new View.OnClickListener() {
+        locationButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
-                System.out.println("locationEditText length = " + locationEditText.getText().length());
-
-                if (locationEditText.getText().length() == 0) {
+                if (!locationSet) {
 
                     selectTagLocation();
 
                 } else {
 
-                    AlertDialog.Builder builder = new AlertDialog.Builder(NewTagActivity.this);
+                    AlertDialog.Builder builder = new AlertDialog.Builder(TagActivity.this);
 
-                    builder.setTitle(locationEditText.getText().toString().trim());
+                    builder.setTitle(R.string.tag_location_alert_title);
+                    builder.setMessage(locationButton.getText().toString().trim());
 
-                    builder.setNegativeButton(R.string.remove, new DialogInterface.OnClickListener() {
+                    builder.setNeutralButton(R.string.remove, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
                             place = null;
 
-                            locationEditText.getText().clear();
+                            locationButton.setText(R.string.location);
+                            locationButton.setTextColor(getResources().getColor(R.color.grey));
+                            locationSet = false;
 
                             if (selectedLocation != null) {
                                 selectedLocation = null;
                             }
+                        }
+                    });
+
+                    builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+
                         }
                     });
 
@@ -245,6 +315,12 @@ public class NewTagActivity extends AppCompatActivity {
 
                         Tag newTag = new Tag(tagText);
 
+
+                        String daysOfTheWeek = daysOfTheWeekToString();
+
+                        newTag.setDaysOfTheWeek(daysOfTheWeek);
+
+
                         if (time != null) {
                             newTag.setTime(time);
                         }
@@ -256,7 +332,7 @@ public class NewTagActivity extends AppCompatActivity {
                             geoFire.setLocation(place.getId(), new GeoLocation(place.getLatLng().latitude, place.getLatLng().longitude), new GeoFire.CompletionListener() {
                                 @Override
                                 public void onComplete(String key, DatabaseError error) {
-                                    Toast.makeText(NewTagActivity.this, "Location stored successfully", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(TagActivity.this, "Location stored successfully", Toast.LENGTH_SHORT).show();
                                 }
                             });
                         }
@@ -281,24 +357,67 @@ public class NewTagActivity extends AppCompatActivity {
                             }
                         }
 
-                        Tag editedTag = new Tag(tagText);
+                        editedTag = new Tag(tagText);
+
+                        String daysOfTheWeek = daysOfTheWeekToString();
+
+                        editedTag.setDaysOfTheWeek(daysOfTheWeek);
+
 
                         if (time != null) {
                             editedTag.setTime(time);
                         }
-                        if (place != null) {
-                            editedTag.setLocationKey(place.getId());
-                            editedTag.setLocationAddress(place.getAddress().toString());
 
-                            geoFire.setLocation(place.getId(), new GeoLocation(place.getLatLng().latitude, place.getLatLng().longitude), new GeoFire.CompletionListener() {
-                                @Override
-                                public void onComplete(String key, DatabaseError error) {
-                                    Toast.makeText(NewTagActivity.this, "Location stored successfully", Toast.LENGTH_SHORT).show();
-                                }
-                            });
+                        String locationKey = getIntent().getStringExtra("tag location key");
+
+                        if (locationButton.getText().length() != 0) {
+
+                            if (place != null) {
+
+                                editedTag.setLocationKey(place.getId());
+                                editedTag.setLocationAddress(place.getAddress().toString());
+
+                                geoFire.setLocation(place.getId(), new GeoLocation(place.getLatLng().latitude, place.getLatLng().longitude), new GeoFire.CompletionListener() {
+                                    @Override
+                                    public void onComplete(String key, DatabaseError error) {
+                                        Toast.makeText(TagActivity.this, "Location stored successfully", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+
+                            ///PLACE WAS NOT SET BUT WAS ALREADY THERE///
+                            } else if (locationKey != null) {
+
+                                GeoDataClient geoDataClient = Places.getGeoDataClient(this, null);
+
+                                geoDataClient.getPlaceById(locationKey).addOnCompleteListener(new OnCompleteListener<PlaceBufferResponse>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<PlaceBufferResponse> task) {
+                                        if (task.isSuccessful()) {
+                                            PlaceBufferResponse places = task.getResult();
+                                            place = places.get(0);
+
+                                            editedTag.setLocationKey(place.getId());
+
+                                            editedTag.setLocationAddress(place.getAddress().toString());
+
+                                            String tagKey = getIntent().getStringExtra("tag key");
+                                            databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("tags").child(tagKey).setValue(editedTag);
+
+                                            places.release();
+
+                                        } else {
+                                            Toast.makeText(TagActivity.this, "There was something wrong with the tag's location. Please delete it and make a new one", Toast.LENGTH_SHORT).show();
+                                        }
+                                    }
+                                });
+
+                                finish();
+                                return true;
+
+                            }
 
                             //////////////////////////////////////////////////////////////////////
-                            if (oldLocationKey != null && !oldLocationKey.equals(place.getId())) {
+                            if (oldLocationKey != null && !oldLocationKey.equals(locationKey)) {
 
                                 geoFire.removeLocation(oldLocationKey, new GeoFire.CompletionListener() {
                                     @Override
@@ -307,7 +426,9 @@ public class NewTagActivity extends AppCompatActivity {
                                     }
                                 });
                             }
-                        } else {
+                        }
+
+                        else {
                             if (oldLocationKey != null) {
                                 geoFire.removeLocation(oldLocationKey, new GeoFire.CompletionListener() {
                                     @Override
@@ -331,7 +452,7 @@ public class NewTagActivity extends AppCompatActivity {
     }
 
     private void selectTagTime() {
-        TimePickerDialog timePickerDialog = new TimePickerDialog(NewTagActivity.this, new TimePickerDialog.OnTimeSetListener() {
+        TimePickerDialog timePickerDialog = new TimePickerDialog(TagActivity.this, new TimePickerDialog.OnTimeSetListener() {
             @Override
             public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
 
@@ -352,7 +473,9 @@ public class NewTagActivity extends AppCompatActivity {
 
                 time = selectedHourAsString + ":" + selectedMinuteAsString;
 
-                timeEditText.setText(time);
+                timeButton.setText(time);
+                timeButton.setTextColor(getResources().getColor(R.color.colorBlack));
+                timeSet = true;
 
             }
         }, 12, 0, true);
@@ -362,7 +485,7 @@ public class NewTagActivity extends AppCompatActivity {
     }
 
     private void selectTagLocation() {
-        if (locationEditText.getText().length() == 0) {
+        if (!locationSet) {
 
             setUpPlacePicker(null);
 
@@ -398,7 +521,9 @@ public class NewTagActivity extends AppCompatActivity {
         if (requestCode == PLACE_PICKER_REQUEST && resultCode == RESULT_OK) {
             place = PlacePicker.getPlace(this, data);
 
-            locationEditText.setText(place.getAddress());
+            locationButton.setText(place.getAddress());
+            locationButton.setTextColor(getResources().getColor(R.color.colorBlack));
+            locationSet = true;
 
             selectedLocation = new GeoLocation(place.getLatLng().latitude, place.getLatLng().longitude);
         }
@@ -419,12 +544,54 @@ public class NewTagActivity extends AppCompatActivity {
         }
 
         try {
-            startActivityForResult(builder.build(NewTagActivity.this), PLACE_PICKER_REQUEST);
+            startActivityForResult(builder.build(TagActivity.this), PLACE_PICKER_REQUEST);
 
         } catch (GooglePlayServicesRepairableException e) {
-            Toast.makeText(NewTagActivity.this, "Google Play Services not available at this time", Toast.LENGTH_SHORT).show();
+            Toast.makeText(TagActivity.this, "Google Play Services not available at this time", Toast.LENGTH_SHORT).show();
         } catch (GooglePlayServicesNotAvailableException e) {
-            Toast.makeText(NewTagActivity.this, "Google Play Services not available at this time", Toast.LENGTH_SHORT).show();
+            Toast.makeText(TagActivity.this, "Google Play Services not available at this time", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private String daysOfTheWeekToString() {
+        String daysOfTheWeek = "";
+
+        if (mondayToggleButton.isChecked()) {
+            daysOfTheWeek += "1";
+        } else {
+            daysOfTheWeek += "0";
+        }
+        if (tuesdayToggleButton.isChecked()) {
+            daysOfTheWeek += "1";
+        } else {
+            daysOfTheWeek += "0";
+        }
+        if (wednesdayToggleButton.isChecked()) {
+            daysOfTheWeek += "1";
+        } else {
+            daysOfTheWeek += "0";
+        }
+        if (thursdayToggleButton.isChecked()) {
+            daysOfTheWeek += "1";
+        } else {
+            daysOfTheWeek += "0";
+        }
+        if (fridayToggleButton.isChecked()) {
+            daysOfTheWeek += "1";
+        } else {
+            daysOfTheWeek += "0";
+        }
+        if (saturdayToggleButton.isChecked()) {
+            daysOfTheWeek += "1";
+        } else {
+            daysOfTheWeek += "0";
+        }
+        if (sundayToggleButton.isChecked()) {
+            daysOfTheWeek += "1";
+        } else {
+            daysOfTheWeek += "0";
+        }
+
+        return daysOfTheWeek;
     }
 }

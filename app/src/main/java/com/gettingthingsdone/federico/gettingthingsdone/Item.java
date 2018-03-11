@@ -8,18 +8,23 @@ import java.util.List;
  * Created by Federico on 07-Nov-17.
  */
 
-public class InTrayItem {
+public class Item {
 
     private String key;
     private String text;
 
     private HashMap<String, String> itemTags;
 
-    public InTrayItem() {}
+    private boolean notificationsEnabled;
 
-    public InTrayItem(String text, HashMap<String, String> itemTags) {
+    public Item() {
+        this.notificationsEnabled = false;
+    }
+
+    public Item(String text, HashMap<String, String> itemTags, boolean notificationsEnabled) {
         this.text = text;
         this.itemTags = itemTags;
+        this.notificationsEnabled = notificationsEnabled;
     }
 
     public String getText() {
@@ -44,6 +49,14 @@ public class InTrayItem {
 
     public HashMap<String, String> getItemTags() {
         return itemTags;
+    }
+
+    public boolean getNotificationsEnabled() {
+        return notificationsEnabled;
+    }
+
+    public void setNotificationsEnabled(boolean enabled) {
+        notificationsEnabled = enabled;
     }
 
 }
