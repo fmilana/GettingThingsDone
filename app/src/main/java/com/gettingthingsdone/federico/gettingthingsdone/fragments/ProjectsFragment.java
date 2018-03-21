@@ -12,6 +12,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,22 +33,22 @@ import java.util.ArrayList;
 
 public class ProjectsFragment extends Fragment {
 
-    private static ArrayList<Project> projects;
+    private ProjectsAdapter projectsAdapter;
 
     private TextView emptyProjectsText;
+    private ProgressBar progressBar;
 
     private FirebaseAuth firebaseAuth;
     private DatabaseReference databaseReference;
 
     private RecyclerView recyclerView;
-    private RecyclerView.Adapter adapter;
     private RecyclerView.LayoutManager layoutManager;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        projects = new ArrayList<>();
+//        projects = new ArrayList<>();
 
         firebaseAuth = MainActivity.firebaseAuth;
         databaseReference = MainActivity.databaseReference;
@@ -61,6 +62,7 @@ public class ProjectsFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_projects, container, false);
 
         emptyProjectsText = (TextView) view.findViewById(R.id.empty_project_list_textview);
+        progressBar = (ProgressBar) view.findViewById(R.id.projects_progress_bar);
 
         getActivity().setTitle(R.string.projects);
 
@@ -73,8 +75,12 @@ public class ProjectsFragment extends Fragment {
         layoutManager = new LinearLayoutManager(this.getActivity());
         recyclerView.setLayoutManager(layoutManager);
 
-        adapter = new ProjectsAdapter(this, projects);
-        recyclerView.setAdapter(adapter);
+        projectsAdapter = new ProjectsAdapter(this);
+        recyclerView.setAdapter(projectsAdapter);
+
+        if (projectsAdapter.getProjects().size() > 0) {
+            emptyProjectsText.setVisibility(View.GONE);
+        }
 
         super.onViewCreated(view, savedInstanceState);
     }
@@ -90,8 +96,8 @@ public class ProjectsFragment extends Fragment {
 
             ArrayList<Project> projectsToRemove = new ArrayList<>();
 
-            for (int i = 0; i < ((ProjectsAdapter)adapter).getSelectedIndexes().size(); ++i) {
-                projectsToRemove.add(projects.get(((ProjectsAdapter)adapter).getSelectedIndexes().get(i)));
+            for (int i = 0; i < projectsAdapter.getSelectedIndexes().size(); ++i) {
+                projectsToRemove.add(projectsAdapter.getProjects().get(projectsAdapter.getSelectedIndexes().get(i)));
             }
 
             for (int i = 0; i < projectsToRemove.size(); ++i) {
@@ -108,11 +114,11 @@ public class ProjectsFragment extends Fragment {
                 }
             }
 
-            ((ProjectsAdapter)adapter).clearSelected();
+            projectsAdapter.clearSelected();
 
             ((MainFragmentActivity)getActivity()).getMenu().findItem(R.id.menu_delete).setVisible(false);
 
-            ((ProjectsAdapter)adapter).stopSelecting();
+            projectsAdapter.stopSelecting();
 
             if (projectsToRemove.size() > 1) {
                 Toast.makeText(getActivity(), "Projects deleted", Toast.LENGTH_SHORT).show();
@@ -128,7 +134,13 @@ public class ProjectsFragment extends Fragment {
         return emptyProjectsText;
     }
 
-    public static ArrayList<Project> getProjects() {
-        return projects;
+    public ArrayList<Project> getProjects() {
+        return projectsAdapter.getProjects();
     }
+
+    public ProjectsAdapter getAdapter() {
+        return projectsAdapter;
+    }
+
+    public ProgressBar getProgressBar() { return progressBar;}
 }

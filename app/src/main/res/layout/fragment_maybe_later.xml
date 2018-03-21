@@ -6,10 +6,18 @@
     android:background="@color/colorLighterGrey"
     android:padding="@dimen/item_list_padding">
 
+    <ProgressBar
+        android:id="@+id/maybe_later_progress_bar"
+        android:paddingTop="150dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
+
     <TextView
         android:id="@+id/emtpy_maybe_later_list_text"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:visibility="gone"
         android:text="@string/maybe_later_is_empty"
         android:gravity="center"/>
 

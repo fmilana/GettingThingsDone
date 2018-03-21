@@ -1,8 +1,12 @@
 package com.gettingthingsdone.federico.gettingthingsdone.activities;
 
+import android.app.AlarmManager;
+import android.app.DatePickerDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -13,13 +17,24 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.AttributeSet;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.DatePicker;
 import android.widget.TextView;
 
 import com.gettingthingsdone.federico.gettingthingsdone.Item;
+import com.gettingthingsdone.federico.gettingthingsdone.Project;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
+import com.gettingthingsdone.federico.gettingthingsdone.adapters.CalendarAdapter;
+import com.gettingthingsdone.federico.gettingthingsdone.adapters.InTrayAdapter;
+import com.gettingthingsdone.federico.gettingthingsdone.adapters.MaybeLaterAdapter;
+import com.gettingthingsdone.federico.gettingthingsdone.adapters.ProjectsAdapter;
+import com.gettingthingsdone.federico.gettingthingsdone.adapters.ReferenceAdapter;
+import com.gettingthingsdone.federico.gettingthingsdone.adapters.TagsAdapter;
+import com.gettingthingsdone.federico.gettingthingsdone.adapters.TrashAdapter;
+import com.gettingthingsdone.federico.gettingthingsdone.adapters.WaitingForAdapter;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.CalendarFragment;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.InTrayFragment;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.MaybeLaterFragment;
@@ -28,6 +43,7 @@ import com.gettingthingsdone.federico.gettingthingsdone.fragments.ReferenceFragm
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.TagsFragment;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.TrashFragment;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.WaitingForFragment;
+import com.gettingthingsdone.federico.gettingthingsdone.receivers.InTrayNotificationReceiver;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -36,12 +52,15 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 
 /**
  * Created by Federico on 03-Feb-18.
  */
 
-public class MainFragmentActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class MainFragmentActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
+
+    private static ArrayList<Item> items;
 
     private DrawerLayout drawerLayout;
 
@@ -61,9 +80,6 @@ public class MainFragmentActivity extends AppCompatActivity implements Navigatio
     private FirebaseAuth firebaseAuth;
     private DatabaseReference databaseReference;
 
-    private static ArrayList<Item> items;
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,34 +93,32 @@ public class MainFragmentActivity extends AppCompatActivity implements Navigatio
         firebaseAuth = MainActivity.firebaseAuth;
         databaseReference = MainActivity.databaseReference;
 
-        ///sets nav header email address to email address///
-        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("email").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                ((TextView)findViewById(R.id.nav_header_email_address)).setText(dataSnapshot.getValue(String.class));
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
-
-        addFirebaseItemListener();
-
-
         if (firebaseAuth.getCurrentUser() == null) {
             Intent intent = new Intent(MainFragmentActivity.this, MainActivity.class);
             MainFragmentActivity.this.startActivity(intent);
             finish();
         }
 
+        addFirebaseItemListener();
+
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
+
+//        ///sets nav header email address to email address///
+//        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("email").addValueEventListener(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(DataSnapshot dataSnapshot) {
+//                ((TextView)drawerLayout.findViewById(R.id.nav_header_email_address)).setText(dataSnapshot.getValue(String.class));
+//            }
+//
+//            @Override
+//            public void onCancelled(DatabaseError databaseError) {
+//
+//            }
+//        });
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
@@ -124,6 +138,8 @@ public class MainFragmentActivity extends AppCompatActivity implements Navigatio
         fragmentTransaction.replace(R.id.content_main_constraint_layout, inTrayFragment).commit();
 
         navigationView.getMenu().getItem(0).setChecked(true);
+
+        setUpInTrayNotification();
     }
 
     @Override
@@ -141,6 +157,19 @@ public class MainFragmentActivity extends AppCompatActivity implements Navigatio
 
         //mine
         this.menu = menu;
+
+        ///sets nav header email address to email address///
+        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("email").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                ((TextView)drawerLayout.findViewById(R.id.nav_header_email_address)).setText(dataSnapshot.getValue(String.class));
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
 
         return true;
     }
@@ -210,8 +239,16 @@ public class MainFragmentActivity extends AppCompatActivity implements Navigatio
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
 
+                for(int i = 0; i < items.size(); ++i) {
+                    if (items.get(i).getKey().equals(dataSnapshot.getKey())) {
+                        return;
+                    }
+                }
+
                 Item newItem = dataSnapshot.getValue(Item.class);
                 newItem.setKey(dataSnapshot.getKey());
+
+                System.out.println("reading ITEM");
 
                 items.add(newItem);
             }
@@ -252,6 +289,20 @@ public class MainFragmentActivity extends AppCompatActivity implements Navigatio
 
             }
         });
+    }
+
+    private void setUpInTrayNotification() {
+        Calendar calendar = Calendar.getInstance();
+
+        calendar.set(Calendar.DAY_OF_WEEK, Calendar.WEDNESDAY);
+        calendar.set(Calendar.HOUR_OF_DAY, 14);
+        calendar.set(Calendar.MINUTE, 30);
+        calendar.set(Calendar.SECOND, 0);
+
+        Intent intent = new Intent(getApplicationContext(), InTrayNotificationReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
+        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY * 7, pendingIntent);
     }
 
     public static ArrayList<Item> getItems() {

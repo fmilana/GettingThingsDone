@@ -12,6 +12,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,9 +32,12 @@ import java.util.ArrayList;
 
 public class TrashFragment extends Fragment {
 
-    private static ArrayList<Item> items;
+//    private static ArrayList<Item> items;
+
+    private TrashAdapter trashAdapter;
 
     private TextView emptyTrashText;
+    private ProgressBar progressBar;
 
     public static final int REQUEST_VIEW_ITEM = 3;
 
@@ -41,14 +45,13 @@ public class TrashFragment extends Fragment {
     private DatabaseReference databaseReference;
 
     private RecyclerView recyclerView;
-    private RecyclerView.Adapter adapter;
     private RecyclerView.LayoutManager layoutManager;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        items = new ArrayList<>();
+//        items = new ArrayList<>();
 
         firebaseAuth = MainActivity.firebaseAuth;
         databaseReference = MainActivity.databaseReference;
@@ -62,6 +65,7 @@ public class TrashFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_trash, container, false);
 
         emptyTrashText = (TextView) view.findViewById(R.id.empty_trash_text);
+        progressBar = (ProgressBar) view.findViewById(R.id.trash_progress_bar);
 
         getActivity().setTitle(R.string.trash);
 
@@ -74,8 +78,12 @@ public class TrashFragment extends Fragment {
         layoutManager = new GridLayoutManager(this.getActivity(), 2);
         recyclerView.setLayoutManager(layoutManager);
 
-        adapter = new TrashAdapter(this, items);
-        recyclerView.setAdapter(adapter);
+        trashAdapter = new TrashAdapter(this);
+        recyclerView.setAdapter(trashAdapter);
+
+        if (trashAdapter.getItems().size() > 0) {
+            emptyTrashText.setVisibility(View.GONE);
+        }
 
         super.onViewCreated(view, savedInstanceState);
     }
@@ -91,8 +99,8 @@ public class TrashFragment extends Fragment {
 
             ArrayList<Item> itemsToRemove = new ArrayList<>();
 
-            for (int i = 0; i < ((TrashAdapter) adapter).getSelectedIndexes().size(); ++i) {
-                itemsToRemove.add(items.get(((TrashAdapter) adapter).getSelectedIndexes().get(i)));
+            for (int i = 0; i < trashAdapter.getSelectedIndexes().size(); ++i) {
+                itemsToRemove.add(trashAdapter.getItems().get(trashAdapter.getSelectedIndexes().get(i)));
             }
 
             for (int i = 0; i < itemsToRemove.size(); ++i) {
@@ -105,28 +113,28 @@ public class TrashFragment extends Fragment {
                     }
                 }
 
-                for (int j = 0; j < items.size(); ++j) {
-                    if (items.get(j).getKey().equals(itemsToRemove.get(i).getKey())) {
-                        items.remove(j);
+                for (int j = 0; j < trashAdapter.getItems().size(); ++j) {
+                    if (trashAdapter.getItems().get(j).getKey().equals(itemsToRemove.get(i).getKey())) {
+                        trashAdapter.getItems().remove(j);
                         break;
                     }
                 }
 //
-                if (items.size() == 0) {
+                if (trashAdapter.getItems().size() == 0) {
                     getEmptyTrashText().setVisibility(View.VISIBLE);
                 }
 
-                adapter.notifyDataSetChanged();
+                trashAdapter.notifyDataSetChanged();
 
                 databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(itemsToRemove.get(i).getKey()).removeValue();
                 databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("trash").child(itemsToRemove.get(i).getKey()).removeValue();
             }
 
-            ((TrashAdapter) adapter).clearSelected();
+            trashAdapter.clearSelected();
 
             ((MainFragmentActivity) getActivity()).getMenu().findItem(R.id.menu_delete).setVisible(false);
 
-            ((TrashAdapter) adapter).stopSelecting();
+            trashAdapter.stopSelecting();
 
             if (itemsToRemove.size() > 1) {
                 Toast.makeText(getActivity(), "Items deleted", Toast.LENGTH_SHORT).show();
@@ -142,11 +150,11 @@ public class TrashFragment extends Fragment {
         return emptyTrashText;
     }
 
-    public static ArrayList<Item> getItems() {
-        return items;
+    public void notifyAdapter() {
+        trashAdapter.notifyDataSetChanged();
     }
 
-    public void notifyAdapter() {
-        adapter.notifyDataSetChanged();
+    public ProgressBar getProgressBar() {
+        return progressBar;
     }
 }

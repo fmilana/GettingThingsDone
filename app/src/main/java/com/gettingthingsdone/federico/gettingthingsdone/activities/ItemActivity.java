@@ -22,6 +22,7 @@ import com.gettingthingsdone.federico.gettingthingsdone.Tag;
 import com.gettingthingsdone.federico.gettingthingsdone.Item;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
 import com.gettingthingsdone.federico.gettingthingsdone.adapters.ItemTagsAdapter;
+import com.gettingthingsdone.federico.gettingthingsdone.fragments.CalendarFragment;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.InTrayFragment;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.MaybeLaterFragment;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.ReferenceFragment;
@@ -53,7 +54,7 @@ public class ItemActivity extends AppCompatActivity {
     private ArrayList<Tag> tags;
 
     private RecyclerView recyclerView;
-    private RecyclerView.Adapter adapter;
+    private ItemTagsAdapter adapter;
     private RecyclerView.LayoutManager layoutManager;
 
     private FirebaseAuth firebaseAuth;
@@ -83,31 +84,9 @@ public class ItemActivity extends AppCompatActivity {
 
             notificationSwitch.setEnabled(false);
 
-            ArrayList<Item> callingFragmentItems = new ArrayList<>();
-
             System.out.println("requestCode = " + requestCode);
 
-            if (requestCode == InTrayFragment.REQUEST_EDIT_ITEM) {
-                callingFragmentItems = InTrayFragment.getItems();
-            } else if (requestCode == MaybeLaterFragment.REQUEST_EDIT_MAYBE_LATER_ITEM) {
-                callingFragmentItems = MaybeLaterFragment.getItems();
-            } else if (requestCode == ReferenceFragment.REQUEST_EDIT_REFERENCE_ITEM) {
-                callingFragmentItems = ReferenceFragment.getItems();
-            } else if (requestCode == WaitingForFragment.REQUEST_EDIT_WAITING_FOR_ITEM) {
-                callingFragmentItems = WaitingForFragment.getItems();
-            } else if (requestCode == ProjectActivity.REQUEST_EDIT_PROJECT_ITEM) {
-                callingFragmentItems = ProjectActivity.getProjectItems();
-            }
-
-            for (int i = 0; i < callingFragmentItems.size(); ++i) {
-
-                Item item = callingFragmentItems.get(i);
-
-                if (item.getKey().equals(getIntent().getStringExtra("item key"))) {
-                    notificationSwitch.setChecked(item.getNotificationsEnabled());
-                    break;
-                }
-            }
+            notificationSwitch.setChecked(getIntent().getBooleanExtra("hasNotificationsEnabled", false));
         }
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -131,7 +110,8 @@ public class ItemActivity extends AppCompatActivity {
                 requestCode == MaybeLaterFragment.REQUEST_EDIT_MAYBE_LATER_ITEM ||
                 requestCode == ReferenceFragment.REQUEST_EDIT_REFERENCE_ITEM ||
                 requestCode == WaitingForFragment.REQUEST_EDIT_WAITING_FOR_ITEM ||
-                requestCode == ProjectActivity.REQUEST_EDIT_PROJECT_ITEM) {
+                requestCode == ProjectActivity.REQUEST_EDIT_PROJECT_ITEM ||
+                requestCode == CalendarFragment.REQUEST_EDIT_CALENDAR_ITEM) {
             editText.setText(getIntent().getStringExtra("item text"));
             editText.setSelection(editText.getText().length());
 
@@ -246,7 +226,7 @@ public class ItemActivity extends AppCompatActivity {
 
                         String editedInTrayItemValue = databaseReference.push().getKey();
 
-
+                        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(itemKey).setValue(item);
                         databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("waitingfor").child(itemKey).setValue(editedInTrayItemValue);
 
                     } else if (requestCode == ProjectActivity.REQUEST_EDIT_PROJECT_ITEM) {
@@ -258,6 +238,17 @@ public class ItemActivity extends AppCompatActivity {
 
                         databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(itemKey).setValue(item);
                         databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("projects").child(projectKey).child("projectItems").child(itemKey).setValue(editedInTrayItemValue);
+
+                    } else if (requestCode == CalendarFragment.REQUEST_EDIT_CALENDAR_ITEM) {
+
+                        String itemKey = getIntent().getStringExtra("item key");
+                        String day = getIntent().getStringExtra("item day");
+
+                        String editedInTrayItemValue = databaseReference.push().getKey();
+
+                        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(itemKey).setValue(item);
+                        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("calendar").child(day).child(itemKey).setValue(editedInTrayItemValue);
+
                     }
 
                 }
@@ -272,9 +263,9 @@ public class ItemActivity extends AppCompatActivity {
 
         HashMap<String, String> tagKeys = new HashMap<>();
 
-        for (int i = 0; i < ((ItemTagsAdapter) adapter).getSelectedIndexes().size(); ++i) {
+        for (int i = 0; i < adapter.getSelectedIndexes().size(); ++i) {
 
-            Tag selectedTag = tags.get(((ItemTagsAdapter) adapter).getSelectedIndexes().get(i));
+            Tag selectedTag = tags.get(adapter.getSelectedIndexes().get(i));
 
             tagKeys.put(selectedTag.getKey(), selectedTag.getText());
         }
@@ -315,7 +306,7 @@ public class ItemActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == TagsFragment.REQUEST_NEW_TAG && resultCode == RESULT_OK) {
-            ((ItemTagsAdapter)adapter).setNewTagJustAdded(true);
+            adapter.setNewTagJustAdded(true);
 
             if (!notificationSwitch.isEnabled()) {
                 notificationSwitch.setEnabled(true);

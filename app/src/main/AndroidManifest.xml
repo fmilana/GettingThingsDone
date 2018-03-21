@@ -3,6 +3,7 @@
     package="com.gettingthingsdone.federico.gettingthingsdone">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.SET_ALARM" />
 
     <application
         android:allowBackup="true"
@@ -40,6 +41,8 @@
             android:name=".activities.ProjectActivity"
             android:label="@string/title_activity_new_tag"
             android:windowSoftInputMode="adjustPan"></activity>
+
+        <receiver android:name=".receivers.InTrayNotificationReceiver"/>
     </application>
 
 </manifest>

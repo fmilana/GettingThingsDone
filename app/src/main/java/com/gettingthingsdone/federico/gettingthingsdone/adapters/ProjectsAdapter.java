@@ -32,6 +32,7 @@ import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
@@ -55,9 +56,10 @@ public class ProjectsAdapter extends RecyclerView.Adapter<ProjectsAdapter.ViewHo
 
 
 
-    public ProjectsAdapter(final ProjectsFragment projectsFragment, final ArrayList<Project> projects) {
+    public ProjectsAdapter(final ProjectsFragment projectsFragment) {
         this.projectsFragment = projectsFragment;
-        this.projects = projects;
+
+        this.projects = new ArrayList<>();
 
         firebaseAuth = MainActivity.firebaseAuth;
         databaseReference = MainActivity.databaseReference;
@@ -66,23 +68,38 @@ public class ProjectsAdapter extends RecyclerView.Adapter<ProjectsAdapter.ViewHo
         selectedCards = new ArrayList<>();
         selecting = false;
 
+        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("projects").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.getChildrenCount() == 0) {
+
+                    projectsFragment.getEmptyProjectsText().setVisibility(View.VISIBLE);
+                    projectsFragment.getProgressBar().setVisibility(View.GONE);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
         databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("projects").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                for (int i = 0; i < projectsFragment.getProjects().size(); ++i) {
-                    if (projectsFragment.getProjects().get(i).getKey().equals(dataSnapshot.getKey())) {
+                for (int i = 0; i < projects.size(); ++i) {
+                    if (projects.get(i).getKey().equals(dataSnapshot.getKey())) {
                         return;
                     }
                 }
 
+                projectsFragment.getEmptyProjectsText().setVisibility(View.GONE);
+                projectsFragment.getProgressBar().setVisibility(View.GONE);
+
                 Project project = dataSnapshot.getValue(Project.class);
                 project.setKey(dataSnapshot.getKey());
-                projectsFragment.getProjects().add(project);
+                projects.add(project);
                 notifyDataSetChanged();
-
-                if (projectsFragment.getProjects().size() == 1) {
-                    projectsFragment.getEmptyProjectsText().setVisibility(View.GONE);
-                }
             }
 
             @Override
@@ -90,9 +107,9 @@ public class ProjectsAdapter extends RecyclerView.Adapter<ProjectsAdapter.ViewHo
                 Project editedProject = dataSnapshot.getValue(Project.class);
                 editedProject.setKey(dataSnapshot.getKey());
 
-                for (int i = 0; i < projectsFragment.getProjects().size(); ++i) {
-                    if (projectsFragment.getProjects().get(i).getKey().equals(dataSnapshot.getKey())) {
-                        projectsFragment.getProjects().set(i, editedProject);
+                for (int i = 0; i < projects.size(); ++i) {
+                    if (projects.get(i).getKey().equals(dataSnapshot.getKey())) {
+                        projects.set(i, editedProject);
                         break;
                     }
                 }
@@ -102,13 +119,13 @@ public class ProjectsAdapter extends RecyclerView.Adapter<ProjectsAdapter.ViewHo
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
-                for (int i = 0; i < projectsFragment.getProjects().size(); ++i) {
-                    if (projectsFragment.getProjects().get(i).getKey().equals(dataSnapshot.getKey())) {
-                        projectsFragment.getProjects().remove(i);
+                for (int i = 0; i < projects.size(); ++i) {
+                    if (projects.get(i).getKey().equals(dataSnapshot.getKey())) {
+                        projects.remove(i);
                     }
                 }
 
-                if (projectsFragment.getProjects().size() == 0) {
+                if (projects.size() == 0) {
                     projectsFragment.getEmptyProjectsText().setVisibility(View.VISIBLE);
                 }
 
@@ -162,17 +179,19 @@ public class ProjectsAdapter extends RecyclerView.Adapter<ProjectsAdapter.ViewHo
         return selectedIndexes;
     }
 
+    public ArrayList<Project> getProjects() { return projects; }
 
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
 
-        private static TextView projectTitleTextView;
-        private static TextView projectDescriptionTextView;
+    public class ViewHolder extends RecyclerView.ViewHolder {
 
-        private static ConstraintLayout constraintLayout;
-        private static CardView cardView;
+        private TextView projectTitleTextView;
+        private TextView projectDescriptionTextView;
 
-        private static ProjectsFragment projectsFragment;
+        private ConstraintLayout constraintLayout;
+        private CardView cardView;
+
+        private ProjectsFragment projectsFragment;
 
         public ViewHolder(final ProjectsFragment projectsFragment, final View view) {
             super(view);
@@ -186,17 +205,17 @@ public class ProjectsAdapter extends RecyclerView.Adapter<ProjectsAdapter.ViewHo
             projectTitleTextView = (TextView) view.findViewById(R.id.project_title_text_view);
             projectDescriptionTextView = (TextView) view.findViewById(R.id.project_description_text_view);
 
-            addCardListeners(constraintLayout);
+            addCardListeners(cardView);
         }
 
-        private void addCardListeners(final ConstraintLayout constraintLayout) {
-            constraintLayout.setOnClickListener(new View.OnClickListener() {
+        private void addCardListeners(final CardView cardView) {
+            cardView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     if (!selecting) {
                         Intent intent = new Intent(view.getContext(), ProjectActivity.class);
 
-                        Project selectedProject = ProjectsFragment.getProjects().get(getAdapterPosition());
+                        Project selectedProject = projects.get(getAdapterPosition());
 
                         intent.putExtra("project position", getAdapterPosition());
                         intent.putExtra("project title", selectedProject.getTitle());
@@ -234,7 +253,7 @@ public class ProjectsAdapter extends RecyclerView.Adapter<ProjectsAdapter.ViewHo
                 }
             });
 
-            constraintLayout.setOnLongClickListener(new View.OnLongClickListener() {
+            cardView.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View view) {
 

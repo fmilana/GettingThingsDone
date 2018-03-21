@@ -1,9 +1,7 @@
 package com.gettingthingsdone.federico.gettingthingsdone.adapters;
 
-import android.app.AlertDialog;
-import android.app.Fragment;
-import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.CardView;
@@ -12,14 +10,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.gettingthingsdone.federico.gettingthingsdone.Item;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.ItemActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.MainActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.MainFragmentActivity;
-import com.gettingthingsdone.federico.gettingthingsdone.fragments.TrashFragment;
+import com.gettingthingsdone.federico.gettingthingsdone.fragments.CalendarFragment;
+import com.github.sundeepk.compactcalendarview.domain.Event;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -27,27 +25,34 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 /**
- * Created by feder on 02-Mar-18.
+ * Created by feder on 12-Mar-18.
  */
 
-public class TrashAdapter extends RecyclerView.Adapter<TrashAdapter.ViewHolder> {
+public class CalendarAdapter extends RecyclerView.Adapter<CalendarAdapter.ViewHolder> {
+
+    private CalendarFragment calendarFragment;
 
     private FirebaseAuth firebaseAuth;
     private DatabaseReference databaseReference;
 
-    private TrashFragment trashFragment;
     private ArrayList<Item> items;
 
-    private static ArrayList<Integer> selectedIndexes;
-    private static ArrayList<CardView> selectedCards;
+    private String selectedDate;
 
-    private static boolean selecting;
+    private ArrayList<Integer> selectedIndexes;
+    private ArrayList<CardView> selectedCards;
+    private boolean selecting;
 
-    public TrashAdapter(final TrashFragment trashFragment) {
-        this.trashFragment = trashFragment;
+    public CalendarAdapter(final CalendarFragment calendarFragment, final String selectedDate) {
+        this.calendarFragment = calendarFragment;
+        this.selectedDate = selectedDate;
+
+        System.out.println("STARTING CALENDAR ADAPTER WITH SELECTEDDATE = " + selectedDate);
 
         items = new ArrayList<>();
 
@@ -58,12 +63,13 @@ public class TrashAdapter extends RecyclerView.Adapter<TrashAdapter.ViewHolder> 
         selectedCards = new ArrayList<>();
         selecting = false;
 
-        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("trash").addValueEventListener(new ValueEventListener() {
+        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("calendar").child(selectedDate).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.getChildrenCount() == 0) {
-                    trashFragment.getEmptyTrashText().setVisibility(View.VISIBLE);
-                    trashFragment.getProgressBar().setVisibility(View.GONE);
+
+                    calendarFragment.getEmptyCalendarItemsText().setVisibility(View.VISIBLE);
+                    calendarFragment.getProgressBar().setVisibility(View.GONE);
                 }
             }
 
@@ -73,10 +79,10 @@ public class TrashAdapter extends RecyclerView.Adapter<TrashAdapter.ViewHolder> 
             }
         });
 
-        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("trash").addChildEventListener(new ChildEventListener() {
+
+        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("calendar").child(selectedDate).addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-
                 for (int i = 0; i < items.size(); ++i) {
                     if (items.get(i).getKey().equals(dataSnapshot.getKey())) {
                         return;
@@ -87,9 +93,8 @@ public class TrashAdapter extends RecyclerView.Adapter<TrashAdapter.ViewHolder> 
                     Item item = MainFragmentActivity.getItems().get(i);
 
                     if (dataSnapshot.getKey().equals(item.getKey())) {
-
-                        trashFragment.getEmptyTrashText().setVisibility(View.GONE);
-                        trashFragment.getProgressBar().setVisibility(View.GONE);
+                        calendarFragment.getEmptyCalendarItemsText().setVisibility(View.GONE);
+                        calendarFragment.getProgressBar().setVisibility(View.GONE);
 
                         items.add(item);
                         break;
@@ -101,7 +106,6 @@ public class TrashAdapter extends RecyclerView.Adapter<TrashAdapter.ViewHolder> 
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
                 String editedItemKey = dataSnapshot.getKey();
 
                 for (int i = 0; i < MainFragmentActivity.getItems().size(); ++i) {
@@ -125,6 +129,7 @@ public class TrashAdapter extends RecyclerView.Adapter<TrashAdapter.ViewHolder> 
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
+
             }
 
             @Override
@@ -140,14 +145,14 @@ public class TrashAdapter extends RecyclerView.Adapter<TrashAdapter.ViewHolder> 
     }
 
     @Override
-    public TrashAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View cardView = LayoutInflater.from(parent.getContext()).inflate(R.layout.trash_item, parent, false);
-        ViewHolder viewHolder = new ViewHolder(trashFragment, cardView);
+    public CalendarAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View cardView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item, parent, false);
+        CalendarAdapter.ViewHolder viewHolder = new CalendarAdapter.ViewHolder(calendarFragment, cardView);
         return viewHolder;
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(CalendarAdapter.ViewHolder holder, int position) {
         holder.setIsRecyclable(false);
 
         Item item = items.get(holder.getAdapterPosition());
@@ -163,16 +168,21 @@ public class TrashAdapter extends RecyclerView.Adapter<TrashAdapter.ViewHolder> 
         return selectedIndexes;
     }
 
-    public static void clearSelected() {
+
+    public void clearSelected() {
         selectedCards.clear();
         selectedIndexes.clear();
     }
 
-    public static void stopSelecting() {
+    public void stopSelecting() {
         selecting = false;
+        ((MainFragmentActivity) calendarFragment.getActivity()).getMenu().findItem(R.id.menu_delete).setVisible(false);
     }
 
-    public ArrayList<Item> getItems() { return items; }
+    public ArrayList<Item> getItems() {
+        return items;
+    }
+
 
 
 
@@ -180,58 +190,27 @@ public class TrashAdapter extends RecyclerView.Adapter<TrashAdapter.ViewHolder> 
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
-        private ConstraintLayout constraintLayout;
+        private CardView cardView;
         private TextView itemTextView;
-        private AppCompatButton restoreButton;
 
-        private TrashFragment trashFragment;
+        private CalendarFragment calendarFragment;
 
-
-        public ViewHolder(final TrashFragment trashFragment, final View view) {
-
+        public ViewHolder(final CalendarFragment calendarFragment, final View view) {
             super(view);
 
-            this.trashFragment = trashFragment;
+            this.calendarFragment = calendarFragment;
 
-            constraintLayout = (ConstraintLayout) view.findViewById(R.id.trash_item_constraint_layout);
+            itemTextView = (TextView) view.findViewById(R.id.item_text_view);
 
-            itemTextView = (TextView) view.findViewById(R.id.trash_item_text_view);
+            cardView = (CardView) view.findViewById(R.id.item_card_view);
 
-            restoreButton = (AppCompatButton) view.findViewById(R.id.restore_button);
-
-
-            restoreButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    showRestoreDialog();
-                }
-            });
-
-            addCardListeners(constraintLayout);
+            addCardListeners(cardView);
         }
 
-        private void restoreItemToInTray(Item item) {
-            String editedInTrayItemValue = MainActivity.databaseReference.push().getKey();
-
-            MainActivity.databaseReference.child("users").child(MainActivity.firebaseAuth.getCurrentUser().getUid()).child("intray").child(item.getKey()).setValue(editedInTrayItemValue);
-            MainActivity.databaseReference.child("users").child(MainActivity.firebaseAuth.getCurrentUser().getUid()).child("trash").child(item.getKey()).removeValue();
-
-            items.remove(item);
-
-            trashFragment.notifyAdapter();
-
-            if (items.size() == 0) {
-                trashFragment.getEmptyTrashText().setVisibility(View.VISIBLE);
-            }
-
-            Toast.makeText(trashFragment.getActivity(), "Item restored to Trash", Toast.LENGTH_SHORT).show();
-        }
-
-        private void addCardListeners(ConstraintLayout constraintLayout) {
-            constraintLayout.setOnClickListener(new View.OnClickListener() {
+        private void addCardListeners(CardView cardView) {
+            cardView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-
                     if (!selecting) {
                         Intent intent = new Intent(view.getContext(), ItemActivity.class);
 
@@ -239,23 +218,24 @@ public class TrashAdapter extends RecyclerView.Adapter<TrashAdapter.ViewHolder> 
 
                         intent.putExtra("hasNotificationsEnabled", selectedItem.getNotificationsEnabled());
 
-                        intent.putExtra("requestCode", TrashFragment.REQUEST_VIEW_ITEM);
+                        intent.putExtra("requestCode", CalendarFragment.REQUEST_EDIT_CALENDAR_ITEM);
                         intent.putExtra("item position", getAdapterPosition());
                         intent.putExtra("item text", selectedItem.getText());
+                        intent.putExtra("item day", selectedDate);
                         intent.putExtra("item key", selectedItem.getKey());
 
                         intent.putExtra("item tags", selectedItem.getItemTags());
 
 
-                        trashFragment.startActivity(intent);
+                        calendarFragment.startActivity(intent);
 
                     } else {
-                        CardView cardView = (CardView)itemView.findViewById(R.id.trash_item_card_view);
+
+                        CardView cardView = (CardView) itemView.findViewById(R.id.item_card_view);
 
                         //deselecting card
                         if (selectedCards.contains(cardView)) {
                             cardView.setCardBackgroundColor(view.getResources().getColor(R.color.colorWhite));
-                            restoreButton.setBackgroundColor(view.getResources().getColor(R.color.colorLightGrey));
 
                             selectedCards.remove(cardView);
                             selectedIndexes.remove(new Integer(getAdapterPosition()));
@@ -263,70 +243,38 @@ public class TrashAdapter extends RecyclerView.Adapter<TrashAdapter.ViewHolder> 
                             if (selectedCards.size() == 0) {
                                 selecting = false;
 //                                toolbar.setBackgroundResource(R.color.colorPrimary);
-                                ((MainFragmentActivity)((Fragment)trashFragment).getActivity()).getMenu().findItem(R.id.menu_delete).setVisible(false);
+                                ((MainFragmentActivity) calendarFragment.getActivity()).getMenu().findItem(R.id.menu_delete).setVisible(false);
                             }
 
                         } else {
                             //adding another card to the selection
                             cardView.setCardBackgroundColor(view.getResources().getColor(R.color.colorLightGrey2));
-                            restoreButton.setBackgroundColor(view.getResources().getColor(R.color.colorClarifyButtonSelected));
 
                             selectedCards.add(cardView);
                             selectedIndexes.add(getAdapterPosition());
-
                         }
                     }
                 }
             });
 
-            constraintLayout.setOnLongClickListener(new View.OnLongClickListener() {
+            cardView.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View view) {
 
-                    CardView cardView = (CardView)itemView.findViewById(R.id.trash_item_card_view);
+                    CardView cardView = (CardView) itemView.findViewById(R.id.item_card_view);
 
                     cardView.setCardBackgroundColor(view.getResources().getColor(R.color.colorLightGrey2));
-                    restoreButton.setBackgroundColor(view.getResources().getColor(R.color.colorClarifyButtonSelected));
 
                     selecting = true;
 
                     selectedCards.add(cardView);
                     selectedIndexes.add(getAdapterPosition());
 
-//                    toolbar.setBackgroundResource(R.color.colorPrimaryLight);
-
-                    ((MainFragmentActivity)((Fragment)trashFragment).getActivity()).getMenu().findItem(R.id.menu_delete).setVisible(true);
+                    ((MainFragmentActivity) calendarFragment.getActivity()).getMenu().findItem(R.id.menu_delete).setVisible(true);
 
                     return true;
                 }
             });
         }
-
-        private void showRestoreDialog() {
-            AlertDialog.Builder builder = new AlertDialog.Builder(trashFragment.getActivity());
-
-            builder.setTitle(trashFragment.getResources().getString(R.string.restore_item_alert_title));
-
-            builder.setMessage(items.get(getAdapterPosition()).getText());
-
-            builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-
-                }
-            });
-
-            builder.setPositiveButton(R.string.restore, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    restoreItemToInTray(items.get(getAdapterPosition()));
-                }
-            });
-
-            AlertDialog dialog = builder.create();
-
-            dialog.show();
-        }
     }
-
 }

@@ -12,6 +12,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.gettingthingsdone.federico.gettingthingsdone.Item;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
@@ -34,17 +36,21 @@ import java.util.ArrayList;
 
 public class TagsFragment extends Fragment {
 
-    public FirebaseAuth firebaseAuth;
-    public DatabaseReference databaseReference;
+    private TagsAdapter tagsAdapter;
+
+    private TextView youHaveNoTagsTextView;
+    private ProgressBar progressBar;
+
+    private FirebaseAuth firebaseAuth;
+    private DatabaseReference databaseReference;
 
     private RecyclerView recyclerView;
     private RecyclerView.LayoutManager layoutManager;
-    private RecyclerView.Adapter adapter;
 
     public static final int REQUEST_NEW_TAG = 0;
     public static final int REQUEST_EDIT_TAG = 1;
 
-    private static ArrayList<Tag> tags;
+//    private static ArrayList<Tag> tags;
 
     @Nullable
     @Override
@@ -55,10 +61,12 @@ public class TagsFragment extends Fragment {
 
         setHasOptionsMenu(true);
 
-        tags = new ArrayList<>();
-
         firebaseAuth = MainActivity.firebaseAuth;
         databaseReference = MainActivity.databaseReference;
+
+        youHaveNoTagsTextView = view.findViewById(R.id.empty_tags_textview);
+
+        progressBar = view.findViewById(R.id.tags_progress_bar);
 
         return view;
     }
@@ -75,8 +83,8 @@ public class TagsFragment extends Fragment {
 
                 ArrayList<String> tagTexts = new ArrayList<>();
 
-                for (int i = 0; i < tags.size(); ++i) {
-                    tagTexts.add(tags.get(i).getText());
+                for (int i = 0; i < tagsAdapter.getTags().size(); ++i) {
+                    tagTexts.add(tagsAdapter.getTags().get(i).getText());
                 }
 
                 intent.putExtra("tag text list", tagTexts);
@@ -94,8 +102,13 @@ public class TagsFragment extends Fragment {
         layoutManager.setJustifyContent(JustifyContent.FLEX_START);
         recyclerView.setLayoutManager(layoutManager);
 
-        adapter = new TagsAdapter(this, tags);
-        recyclerView.setAdapter(adapter);
+        tagsAdapter = new TagsAdapter(this);
+
+        if (tagsAdapter.getTags().size() > 0) {
+            youHaveNoTagsTextView.setVisibility(View.GONE);
+        }
+
+        recyclerView.setAdapter(tagsAdapter);
     }
 
     @Override
@@ -109,8 +122,8 @@ public class TagsFragment extends Fragment {
 
             final ArrayList<Tag> tagsToRemove = new ArrayList<>();
 
-            for (int i = 0; i < ((TagsAdapter) adapter).getSelectedIndexes().size(); ++i) {
-                tagsToRemove.add(tags.get(((TagsAdapter) adapter).getSelectedIndexes().get(i)));
+            for (int i = 0; i < tagsAdapter.getSelectedIndexes().size(); ++i) {
+                tagsToRemove.add(tagsAdapter.getTags().get(tagsAdapter.getSelectedIndexes().get(i)));
             }
 
 
@@ -128,18 +141,22 @@ public class TagsFragment extends Fragment {
                 databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("tags").child(tagToRemove.getKey()).removeValue();
             }
 
-            TagsAdapter.ViewHolder.clearSelected();
+
+            tagsAdapter.clearSelected();
 
             ((MainFragmentActivity) getActivity()).getMenu().findItem(R.id.menu_delete).setVisible(false);
 
-            TagsAdapter.ViewHolder.stopSelecting();
+            tagsAdapter.stopSelecting();
         }
 
         return super.onOptionsItemSelected(menuItem);
     }
 
-    public static ArrayList<Tag> getTags() {
-        return tags;
+    public TextView getYouHaveNoTagsTextView() {
+        return youHaveNoTagsTextView;
     }
 
+    public ProgressBar getProgressBar() {
+        return progressBar;
+    }
 }

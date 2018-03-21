@@ -1,6 +1,5 @@
 <resources>
-    <string name="app_name">GettingThingsDone</string>
-
+    <string name="app_name">GTD</string>
     <string name="logo">Getting Things Done</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
@@ -55,6 +54,7 @@
     <string name="title">Title</string>
     <string name="description">Description</string>
 
+    <string name="you_have_no_tags">You have no Tags.\nTap the \"+\" button to create one.</string>
     <string name="in_tray_is_empty">Your In Tray is empty.\nTap the \"+\" button to insert an Item.</string>
     <string name="trash_is_empty">Your Trash is empty.</string>
     <string name="maybe_later_is_empty">Your Maybe/Later list is empty.</string>
@@ -64,7 +64,7 @@
     <string name="projects_is_empty">Your Project list is empty.</string>
     <string name="this_project_has_no_items">This Project has no Items.</string>
 
-    <string name="notifications">Notifications</string>
+    <string name="notifications">Tag notifications</string>
 
 
     <string name="time">Time</string>
@@ -91,7 +91,8 @@
 
     <string name="skip">Skip</string>
     <string name="move_item_to">Move Item to</string>
-    <string name="move_item_to_project">Move Item to project</string>
+    <string name="move_item_to_project">Move Item to Project</string>
+    <string name="move_item_to_new_project">Move Item to new Project</string>
     <string name="is_this_item_actionable">Is this Item actionable?</string>
     <string name="is_this_item_useful_to_remember">Is this Item useful to remember?</string>
     <string name="does_this_item_take_more_than_two_minutes">Does this Item take more than 2 minutes?</string>
@@ -99,7 +100,9 @@
     <string name="do_it_now">Do it now!</string>
     <string name="does_this_item_need_to_wait_for_something_or_someone">Does this Item need to wait for something or someone?</string>
     <string name="is_this_item_part_of_a_project">Is this Item part of a project?</string>
+    <string name="pick_a_date_for_this_item">Pick a date for this Item</string>
 
+    <string name="this_item_belongs_in_calendar">This Item belongs in Calendar</string>
     <string name="this_item_belongs_in_trash">This Item belongs in Trash</string>
     <string name="this_item_belongs_in_reference">This Item belongs in Reference</string>
     <string name="this_item_belongs_in_waiting_for">This Item belongs in Waiting For</string>
@@ -112,5 +115,10 @@
     <string name="restore_item_alert_title">Restore Item to In Tray?</string>
     <string name="tag_delete_warning">This tag is used by the following Items</string>
     <string name="tags_delete_warning">One or more tags are being used by the following Items</string>
+
+    <string name="in_tray_notification_channel_name">In Tray Clarification Reminders</string>
+    <string name="in_tray_notification_title">Time to Clarify your In Tray Items</string>
+
+    <string name="settings_notifications_textview">Notifications</string>
 
 </resources>

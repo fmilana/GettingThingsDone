@@ -23,6 +23,7 @@
             android:hint="@string/in_tray_input_hint"
             android:maxLines="15"
             android:textSize="30dp"
+            android:inputType="textCapSentences"
             android:windowSoftInputMode="stateVisible" />
 
     </android.support.design.widget.TextInputLayout>

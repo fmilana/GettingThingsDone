@@ -12,6 +12,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,15 +32,15 @@ import java.util.ArrayList;
 
 public class MaybeLaterFragment extends Fragment {
 
-    private static ArrayList<Item> items;
+    private MaybeLaterAdapter maybeLaterAdapter;
 
     private TextView emptyMaybeLaterText;
+    private ProgressBar progressBar;
 
     private FirebaseAuth firebaseAuth;
     private DatabaseReference databaseReference;
 
     private RecyclerView recyclerView;
-    private RecyclerView.Adapter adapter;
     private RecyclerView.LayoutManager layoutManager;
 
     public static final int REQUEST_EDIT_MAYBE_LATER_ITEM = 4;
@@ -48,7 +49,7 @@ public class MaybeLaterFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        items = new ArrayList<>();
+//        items = new ArrayList<>();
 
         System.out.println("MainFragmentActivity.getItems().size() WHEN LAUNCHING MAYBELATERFRAGMENT = " + MainFragmentActivity.getItems().size());
 
@@ -65,6 +66,8 @@ public class MaybeLaterFragment extends Fragment {
 
         emptyMaybeLaterText = (TextView) view.findViewById(R.id.emtpy_maybe_later_list_text);
 
+        progressBar = (ProgressBar) view.findViewById(R.id.maybe_later_progress_bar);
+
         getActivity().setTitle(R.string.maybe_later);
 
         return view;
@@ -76,8 +79,13 @@ public class MaybeLaterFragment extends Fragment {
         layoutManager = new GridLayoutManager(this.getActivity(), 2);
         recyclerView.setLayoutManager(layoutManager);
 
-        adapter = new MaybeLaterAdapter(this, items);
-        recyclerView.setAdapter(adapter);
+        maybeLaterAdapter = new MaybeLaterAdapter(this);
+
+        recyclerView.setAdapter(maybeLaterAdapter);
+
+        if (maybeLaterAdapter.getItems().size() > 0) {
+            emptyMaybeLaterText.setVisibility(View.GONE);
+        }
 
         super.onViewCreated(view, savedInstanceState);
     }
@@ -93,8 +101,8 @@ public class MaybeLaterFragment extends Fragment {
 
             ArrayList<Item> itemsToRemove = new ArrayList<>();
 
-            for (int i = 0; i < ((MaybeLaterAdapter)adapter).getSelectedIndexes().size(); ++i) {
-                itemsToRemove.add(items.get(((MaybeLaterAdapter)adapter).getSelectedIndexes().get(i)));
+            for (int i = 0; i < maybeLaterAdapter.getSelectedIndexes().size(); ++i) {
+                itemsToRemove.add(maybeLaterAdapter.getItems().get(maybeLaterAdapter.getSelectedIndexes().get(i)));
             }
 
             for (int i = 0; i < itemsToRemove.size(); ++i) {
@@ -107,28 +115,28 @@ public class MaybeLaterFragment extends Fragment {
                     }
                 }
 
-                for (int j = 0; j < items.size(); ++j) {
-                    if (items.get(j).getKey().equals(itemsToRemove.get(i).getKey())) {
-                        items.remove(j);
+                for (int j = 0; j < maybeLaterAdapter.getItems().size(); ++j) {
+                    if (maybeLaterAdapter.getItems().get(j).getKey().equals(itemsToRemove.get(i).getKey())) {
+                        maybeLaterAdapter.getItems().remove(j);
                         break;
                     }
                 }
 //
-                if (items.size() == 0) {
+                if (maybeLaterAdapter.getItems().size() == 0) {
                     getEmptyMaybeLaterText().setVisibility(View.VISIBLE);
                 }
 
-                adapter.notifyDataSetChanged();
+                maybeLaterAdapter.notifyDataSetChanged();
 
                 databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(itemsToRemove.get(i).getKey()).removeValue();
                 databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("maybelater").child(itemsToRemove.get(i).getKey()).removeValue();
             }
 
-            ((MaybeLaterAdapter)adapter).clearSelected();
+            maybeLaterAdapter.clearSelected();
 
             ((MainFragmentActivity)getActivity()).getMenu().findItem(R.id.menu_delete).setVisible(false);
 
-            ((MaybeLaterAdapter)adapter).stopSelecting();
+            maybeLaterAdapter.stopSelecting();
 
             if (itemsToRemove.size() > 1) {
                 Toast.makeText(getActivity(), "Items deleted", Toast.LENGTH_SHORT).show();
@@ -144,11 +152,11 @@ public class MaybeLaterFragment extends Fragment {
         return emptyMaybeLaterText;
     }
 
-    public static ArrayList<Item> getItems() {
-        return items;
+    public ProgressBar getProgressBar() {
+        return progressBar;
     }
 
     public void notifyAdapter() {
-        adapter.notifyDataSetChanged();
+        maybeLaterAdapter.notifyDataSetChanged();
     }
 }

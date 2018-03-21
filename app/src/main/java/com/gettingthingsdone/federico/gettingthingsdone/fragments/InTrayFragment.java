@@ -1,5 +1,6 @@
 package com.gettingthingsdone.federico.gettingthingsdone.fragments;
 
+import android.app.DatePickerDialog;
 import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
@@ -13,6 +14,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,13 +23,11 @@ import com.gettingthingsdone.federico.gettingthingsdone.R;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.ItemActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.MainActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.MainFragmentActivity;
-import com.gettingthingsdone.federico.gettingthingsdone.adapters.InTrayItemsAdapter;
+import com.gettingthingsdone.federico.gettingthingsdone.adapters.InTrayAdapter;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 /**
  * Created by Federico on 07-Nov-17.
@@ -36,28 +36,34 @@ import java.util.List;
 public class InTrayFragment extends Fragment {
 
     private RecyclerView recyclerView;
-    private RecyclerView.Adapter adapter;
+    private InTrayAdapter adapter;
     private RecyclerView.LayoutManager layoutManager;
 
-    private TextView emtpyInTrayText;
+    private ProgressBar progressBar;
+
+    private TextView emptyInTrayText;
 
     public static final int REQUEST_NEW_ITEM = 0;
     public static final int REQUEST_EDIT_ITEM = 1;
 
+    public static final String INTRAY_CLARIFICATION_CHANNEL = "InTrayClarificationChannel";
+
     private FirebaseAuth firebaseAuth;
     private DatabaseReference databaseReference;
-
-    private static ArrayList<Item> items;
 
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        items = new ArrayList<>();
+        System.out.println("CREATING INTRAY");
+
+//        items = new ArrayList<>();
+
 
         firebaseAuth = MainActivity.firebaseAuth;
         databaseReference = MainActivity.databaseReference;
+
 
         if (firebaseAuth.getCurrentUser() == null) {
             Intent intent = new Intent(getActivity(), MainActivity.class);
@@ -72,7 +78,9 @@ public class InTrayFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_in_tray, container, false);
 
-        emtpyInTrayText = (TextView) view.findViewById(R.id.empty_in_tray_text);
+        emptyInTrayText = (TextView) view.findViewById(R.id.empty_in_tray_text);
+
+        progressBar = (ProgressBar) view.findViewById(R.id.in_tray_progress_bar);
 
         getActivity().setTitle(R.string.in_tray);
 
@@ -93,12 +101,19 @@ public class InTrayFragment extends Fragment {
             }
         });
 
-        recyclerView = getView().findViewById(R.id.in_tray_recycler_view);
+        recyclerView = view.findViewById(R.id.in_tray_recycler_view);
         layoutManager = new GridLayoutManager(this.getActivity(), 2);
         recyclerView.setLayoutManager(layoutManager);
 
-        adapter = new InTrayItemsAdapter(this, items);
+        System.out.println("set new adapter");
+        adapter = new InTrayAdapter(this);
+
         recyclerView.setAdapter(adapter);
+
+        if (adapter.getItems().size() > 0) {
+            emptyInTrayText.setVisibility(View.GONE);
+        }
+
     }
 
     @Override
@@ -112,8 +127,8 @@ public class InTrayFragment extends Fragment {
 
             ArrayList<Item> itemsToRemove = new ArrayList<>();
 
-            for (int i = 0; i < ((InTrayItemsAdapter)adapter).getSelectedIndexes().size(); ++i) {
-                itemsToRemove.add(items.get(((InTrayItemsAdapter)adapter).getSelectedIndexes().get(i)));
+            for (int i = 0; i < adapter.getSelectedIndexes().size(); ++i) {
+                itemsToRemove.add(adapter.getItems().get(adapter.getSelectedIndexes().get(i)));
             }
 
             for (int i = 0; i < itemsToRemove.size(); ++i) {
@@ -127,14 +142,14 @@ public class InTrayFragment extends Fragment {
                     }
                 }
 
-                for (int j = 0; j < items.size(); ++j) {
-                    if (items.get(j).getKey().equals(itemsToRemove.get(i).getKey())) {
-                        items.remove(j);
+                for (int j = 0; j < adapter.getItems().size(); ++j) {
+                    if (adapter.getItems().get(j).getKey().equals(itemsToRemove.get(i).getKey())) {
+                        adapter.getItems().remove(j);
                         break;
                     }
                 }
 //
-                if (items.size() == 0) {
+                if (adapter.getItems().size() == 0) {
                     getEmptyInTrayText().setVisibility(View.VISIBLE);
                 }
 
@@ -145,11 +160,11 @@ public class InTrayFragment extends Fragment {
                 databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("intray").child(itemsToRemove.get(i).getKey()).removeValue();
             }
 
-            ((InTrayItemsAdapter)adapter).clearSelected();
+            adapter.clearSelected();
 
             ((MainFragmentActivity)getActivity()).getMenu().findItem(R.id.menu_delete).setVisible(false);
 
-            ((InTrayItemsAdapter)adapter).stopSelecting();
+            adapter.stopSelecting();
 
             if (itemsToRemove.size() > 1) {
                 Toast.makeText(getActivity(), "Items deleted", Toast.LENGTH_SHORT).show();
@@ -161,15 +176,25 @@ public class InTrayFragment extends Fragment {
         return super.onOptionsItemSelected(item);
     }
 
-    public static ArrayList<Item> getItems(){
-        return items;
+    public ArrayList<Item> getItems(){
+        return adapter.getItems();
     }
 
     public TextView getEmptyInTrayText() {
-        return emtpyInTrayText;
+        return emptyInTrayText;
     }
 
     public void notifyAdapter() {
         adapter.notifyDataSetChanged();
     }
+
+    public InTrayAdapter getAdapter() {
+        return adapter;
+    }
+
+    public ProgressBar getProgressBar() {return progressBar;}
+
+//    public static void resetAdapter() {
+//        adapter = null;
+//    }
 }

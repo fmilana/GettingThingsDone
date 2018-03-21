@@ -339,6 +339,7 @@ public class TagActivity extends AppCompatActivity {
 
                         databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("tags").push().setValue(newTag);
 
+
                         setResult(Activity.RESULT_OK);
 
                     } else if (getIntent().getIntExtra("requestCode", -1) == TagsFragment.REQUEST_EDIT_TAG) {

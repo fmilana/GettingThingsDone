@@ -29,7 +29,7 @@ import java.util.HashMap;
 
 public class ItemTagsAdapter extends RecyclerView.Adapter<ItemTagsAdapter.ViewHolder> {
 
-    private static ArrayList<Tag> tags;
+    private ArrayList<Tag> tags;
 
     private static int requestCode;
 
@@ -39,9 +39,9 @@ public class ItemTagsAdapter extends RecyclerView.Adapter<ItemTagsAdapter.ViewHo
     private DatabaseReference databaseReference;
 
 //    private static ArrayList<String> selectedTexts;
-    private static HashMap<String, String> itemTags;
-    private static ArrayList<View> selectedViews;
-    private static ArrayList<Integer> selectedIndexes;
+    private HashMap<String, String> itemTags;
+    private ArrayList<View> selectedViews;
+    private ArrayList<Integer> selectedIndexes;
 
     private RecyclerView recyclerView;
 
@@ -51,6 +51,8 @@ public class ItemTagsAdapter extends RecyclerView.Adapter<ItemTagsAdapter.ViewHo
 
     public ItemTagsAdapter(final ItemActivity itemActivity, final ArrayList<Tag> tags, final int requestCode) {
         this.tags = tags;
+
+        System.out.println("ADAPTER START");
 
         this.requestCode = requestCode;
 
@@ -156,6 +158,7 @@ public class ItemTagsAdapter extends RecyclerView.Adapter<ItemTagsAdapter.ViewHo
 
         holder.itemTagTextView.setText(tag.getText());
 
+        System.out.println("binding " + tag.getText());
 
         selectTagIfSelected(cardView, holder.itemTagTextView, holder);
 
@@ -166,6 +169,9 @@ public class ItemTagsAdapter extends RecyclerView.Adapter<ItemTagsAdapter.ViewHo
 
                 selectedIndexes.add(position);
                 selectedViews.add(cardView);
+
+                System.out.println("after adding new tag view, size of selected views is = " + selectedViews.size());
+
 
                 newTagJustAdded = false;
             }
@@ -190,12 +196,18 @@ public class ItemTagsAdapter extends RecyclerView.Adapter<ItemTagsAdapter.ViewHo
             itemActivity.getNotificationSwitch().setEnabled(true);
 
             if (itemTags.containsValue(itemTagTextView.getText().toString().trim())) {
-                itemTagTextView.setBackgroundColor(itemTagTextView.getResources().getColor(R.color.colorAccent));
 
                 selectedIndexes.add(holder.getAdapterPosition());
                 selectedViews.add(cardView);
             }
+
         }
+
+        if (selectedViews.contains(cardView)) {
+            itemTagTextView.setBackgroundColor(itemTagTextView.getResources().getColor(R.color.colorAccent));
+        }
+
+        System.out.println("selectedViews.size() = " + selectedViews.size());
     }
 
 
@@ -208,10 +220,10 @@ public class ItemTagsAdapter extends RecyclerView.Adapter<ItemTagsAdapter.ViewHo
     }
 
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    public class ViewHolder extends RecyclerView.ViewHolder {
         private TextView itemTagTextView;
 
-        private static ItemActivity itemActivity;
+        private ItemActivity itemActivity;
 
         public ViewHolder(final ItemActivity itemActivity, View cardView) {
             super(cardView);
@@ -242,6 +254,10 @@ public class ItemTagsAdapter extends RecyclerView.Adapter<ItemTagsAdapter.ViewHo
 
                             itemActivity.startActivityForResult(intent, TagsFragment.REQUEST_NEW_TAG);
 
+                            System.out.println("0");
+
+
+
                         } else {
                             ///selecting///
                             if (!selectedViews.contains(view)) {
@@ -254,6 +270,8 @@ public class ItemTagsAdapter extends RecyclerView.Adapter<ItemTagsAdapter.ViewHo
                                 selectedIndexes.add(getAdapterPosition());
                                 selectedViews.add(view);
 
+                                System.out.println("1");
+
                                 ///deselecting///
                             } else {
                                 itemTagTextView.setBackgroundColor(view.getResources().getColor(R.color.colorWhite));
@@ -265,6 +283,8 @@ public class ItemTagsAdapter extends RecyclerView.Adapter<ItemTagsAdapter.ViewHo
 
                                 selectedIndexes.remove(new Integer(getAdapterPosition()));
                                 selectedViews.remove(view);
+
+                                System.out.println("2");
                             }
                         }
                     }

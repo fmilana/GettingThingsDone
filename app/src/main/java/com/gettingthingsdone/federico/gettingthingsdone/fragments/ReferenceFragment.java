@@ -12,6 +12,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,15 +32,15 @@ import java.util.ArrayList;
 
 public class ReferenceFragment extends Fragment {
 
-    private static ArrayList<Item> items;
+    private ReferenceAdapter referenceAdapter;
 
     private TextView emptyReferenceText;
+    private ProgressBar progressBar;
 
     private FirebaseAuth firebaseAuth;
     private DatabaseReference databaseReference;
 
     private RecyclerView recyclerView;
-    private RecyclerView.Adapter adapter;
     private RecyclerView.LayoutManager layoutManager;
 
     public static final int REQUEST_EDIT_REFERENCE_ITEM = 5;
@@ -47,8 +48,6 @@ public class ReferenceFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        items = new ArrayList<>();
 
         firebaseAuth = MainActivity.firebaseAuth;
         databaseReference = MainActivity.databaseReference;
@@ -62,6 +61,7 @@ public class ReferenceFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_reference, container, false);
 
         emptyReferenceText = (TextView) view.findViewById(R.id.emtpy_reference_list_text);
+        progressBar = (ProgressBar) view.findViewById(R.id.reference_progress_bar);
 
         getActivity().setTitle(R.string.reference);
 
@@ -74,8 +74,13 @@ public class ReferenceFragment extends Fragment {
         layoutManager = new GridLayoutManager(this.getActivity(), 2);
         recyclerView.setLayoutManager(layoutManager);
 
-        adapter = new ReferenceAdapter(this, items);
-        recyclerView.setAdapter(adapter);
+
+        referenceAdapter = new ReferenceAdapter(this);
+        recyclerView.setAdapter(referenceAdapter);
+
+        if (referenceAdapter.getItems().size() > 0) {
+            emptyReferenceText.setVisibility(View.GONE);
+        }
 
         super.onViewCreated(view, savedInstanceState);
     }
@@ -91,8 +96,8 @@ public class ReferenceFragment extends Fragment {
 
             ArrayList<Item> itemsToRemove = new ArrayList<>();
 
-            for (int i = 0; i < ((ReferenceAdapter)adapter).getSelectedIndexes().size(); ++i) {
-                itemsToRemove.add(items.get(((ReferenceAdapter)adapter).getSelectedIndexes().get(i)));
+            for (int i = 0; i < referenceAdapter.getSelectedIndexes().size(); ++i) {
+                itemsToRemove.add(referenceAdapter.getItems().get(referenceAdapter.getSelectedIndexes().get(i)));
             }
 
             for (int i = 0; i < itemsToRemove.size(); ++i) {
@@ -106,28 +111,28 @@ public class ReferenceFragment extends Fragment {
                     }
                 }
 
-                for (int j = 0; j < items.size(); ++j) {
-                    if (items.get(j).getKey().equals(itemsToRemove.get(i).getKey())) {
-                        items.remove(j);
+                for (int j = 0; j < referenceAdapter.getItems().size(); ++j) {
+                    if (referenceAdapter.getItems().get(j).getKey().equals(itemsToRemove.get(i).getKey())) {
+                        referenceAdapter.getItems().remove(j);
                         break;
                     }
                 }
 //
-                if (items.size() == 0) {
+                if (referenceAdapter.getItems().size() == 0) {
                     getEmptyReferenceText().setVisibility(View.VISIBLE);
                 }
 
-                adapter.notifyDataSetChanged();
+                referenceAdapter.notifyDataSetChanged();
 
                 databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(itemsToRemove.get(i).getKey()).removeValue();
                 databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("reference").child(itemsToRemove.get(i).getKey()).removeValue();
             }
 
-            ((ReferenceAdapter)adapter).clearSelected();
+            referenceAdapter.clearSelected();
 
             ((MainFragmentActivity)getActivity()).getMenu().findItem(R.id.menu_delete).setVisible(false);
 
-            ((ReferenceAdapter)adapter).stopSelecting();
+            referenceAdapter.stopSelecting();
 
             if (itemsToRemove.size() > 1) {
                 Toast.makeText(getActivity(), "Items deleted", Toast.LENGTH_SHORT).show();
@@ -143,11 +148,11 @@ public class ReferenceFragment extends Fragment {
         return emptyReferenceText;
     }
 
-    public static ArrayList<Item> getItems() {
-        return items;
+    public void notifyAdapter() {
+        referenceAdapter.notifyDataSetChanged();
     }
 
-    public void notifyAdapter() {
-        adapter.notifyDataSetChanged();
+    public ProgressBar getProgressBar() {
+        return progressBar;
     }
 }

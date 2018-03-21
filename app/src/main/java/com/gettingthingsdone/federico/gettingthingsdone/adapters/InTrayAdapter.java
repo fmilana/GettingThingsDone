@@ -1,21 +1,15 @@
 package com.gettingthingsdone.federico.gettingthingsdone.adapters;
 
-import android.app.AlertDialog;
 import android.app.Fragment;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.constraint.ConstraintLayout;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.gettingthingsdone.federico.gettingthingsdone.Clarification;
 import com.gettingthingsdone.federico.gettingthingsdone.Item;
@@ -24,12 +18,12 @@ import com.gettingthingsdone.federico.gettingthingsdone.activities.ItemActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.MainActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.MainFragmentActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.InTrayFragment;
-import com.gettingthingsdone.federico.gettingthingsdone.fragments.ProjectsFragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
@@ -37,59 +31,91 @@ import java.util.ArrayList;
  * Created by Federico on 07-Nov-17.
  */
 
-public class InTrayItemsAdapter extends RecyclerView.Adapter<InTrayItemsAdapter.ViewHolder> {
+public class InTrayAdapter extends RecyclerView.Adapter<InTrayAdapter.ViewHolder> {
 
-    private static InTrayFragment inTrayFragment;
+    private InTrayFragment inTrayFragment;
 
-    private ArrayList<Item> items;
-    private static ArrayList<Integer> selectedIndexes;
-    private static ArrayList<CardView> selectedCards;
+    private static ArrayList<Item> items;
+    private ArrayList<Integer> selectedIndexes;
+    private ArrayList<CardView> selectedCards;
 
-    private static boolean selecting;
-
-//    private static Toolbar toolbar;
+    private boolean selecting;
 
     private FirebaseAuth firebaseAuth;
     private DatabaseReference databaseReference;
 
-    public InTrayItemsAdapter(final InTrayFragment inTrayFragment, ArrayList<Item> items) {
+    public InTrayAdapter(final InTrayFragment inTrayFragment) {
         this.inTrayFragment = inTrayFragment;
-        this.items = items;
-        this.selectedIndexes = new ArrayList<Integer>();
-        selectedCards = new ArrayList<CardView>();
-//        this.toolbar = ((AppCompatActivity)((Fragment)inTrayFragment).getActivity()).findViewById(R.id.toolbar);
+        selectedIndexes = new ArrayList<>();
+        selectedCards = new ArrayList<>();
+
+        items = new ArrayList<>();
 
         selecting = false;
 
         firebaseAuth = MainActivity.firebaseAuth;
         databaseReference = MainActivity.databaseReference;
 
+//        addMainActivityItemsListener();
+
+        //////////////////makes it so intraylistener loads only after mainactivity.items are loaded//////////////////
+        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                addInTrayListener();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("intray").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.getChildrenCount() == 0) {
+
+                    inTrayFragment.getEmptyInTrayText().setVisibility(View.VISIBLE);
+                    inTrayFragment.getProgressBar().setVisibility(View.GONE);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+    }
+
+    private void addInTrayListener() {
         databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("intray").addChildEventListener(new ChildEventListener() {
+
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
 
-                for (int i = 0; i < inTrayFragment.getItems().size(); ++i) {
-                    if (inTrayFragment.getItems().get(i).getKey().equals(dataSnapshot.getKey())) {
+                for (int i = 0; i < items.size(); ++i) {
+                    if (items.get(i).getKey().equals(dataSnapshot.getKey())) {
                         return;
                     }
                 }
+
 
                 for (int i = 0; i < MainFragmentActivity.getItems().size(); ++i) {
                     Item item = MainFragmentActivity.getItems().get(i);
 
                     if (dataSnapshot.getKey().equals(item.getKey())) {
-                        inTrayFragment.getItems().add(item);
+
+                        inTrayFragment.getEmptyInTrayText().setVisibility(View.GONE);
+                        inTrayFragment.getProgressBar().setVisibility(View.GONE);
+
+                        items.add(item);
                         break;
                     }
                 }
 
-                System.out.println("NOTIFYING ADAPTER");
-
                 notifyDataSetChanged();
-
-                if (inTrayFragment.getItems().size() == 1) {
-                    inTrayFragment.getEmptyInTrayText().setVisibility(View.GONE);
-                }
             }
 
             @Override
@@ -102,10 +128,10 @@ public class InTrayItemsAdapter extends RecyclerView.Adapter<InTrayItemsAdapter.
 
                     if (editedItemKey.equals(item.getKey())) {
 
-                        for (int j = 0; j < inTrayFragment.getItems().size(); ++j) {
+                        for (int j = 0; j < items.size(); ++j) {
 
-                            if (editedItemKey.equals(inTrayFragment.getItems().get(j).getKey())) {
-                                inTrayFragment.getItems().set(j, item);
+                            if (editedItemKey.equals(items.get(j).getKey())) {
+                                items.set(j, item);
                                 break;
                             }
                         }
@@ -131,11 +157,13 @@ public class InTrayItemsAdapter extends RecyclerView.Adapter<InTrayItemsAdapter.
 
             }
         });
-
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+
+        System.out.println("CREATING VIEWHOLDER");
+
         View cardView = LayoutInflater.from(parent.getContext()).inflate(R.layout.in_tray_item, parent, false);
         ViewHolder viewHolder = new ViewHolder(inTrayFragment, cardView);
         return viewHolder;
@@ -159,12 +187,16 @@ public class InTrayItemsAdapter extends RecyclerView.Adapter<InTrayItemsAdapter.
         return selectedIndexes;
     }
 
-    public static void clearSelected() {
+    public static ArrayList<Item> getItems() {
+        return items;
+    }
+
+    public void clearSelected() {
         selectedCards.clear();
         selectedIndexes.clear();
     }
 
-    public static void stopSelecting() {
+    public void stopSelecting() {
         selecting = false;
     }
 
@@ -172,13 +204,13 @@ public class InTrayItemsAdapter extends RecyclerView.Adapter<InTrayItemsAdapter.
 
 
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    public class ViewHolder extends RecyclerView.ViewHolder {
 
-        private static ConstraintLayout constraintLayout;
-        private static TextView itemTextView;
+        private ConstraintLayout constraintLayout;
+        private TextView itemTextView;
         private AppCompatButton clarifyButton;
 
-        private static InTrayFragment inTrayFragment;
+        private InTrayFragment inTrayFragment;
 
 
         public ViewHolder(final InTrayFragment inTrayFragment, final View view) {
@@ -199,11 +231,12 @@ public class InTrayItemsAdapter extends RecyclerView.Adapter<InTrayItemsAdapter.
                 @Override
                 public void onClick(View view) {
 
-                    Clarification clarification = new Clarification(inTrayFragment);
+                    Item item = items.get(getAdapterPosition());
 
-                    clarification.showClarifyDialog(getAdapterPosition());
+                    Clarification clarification = new Clarification(inTrayFragment, item);
 
-//                    showClarifyDialog(getAdapterPosition());
+                    clarification.showClarifyDialog();
+
                 }
             });
         }
@@ -217,7 +250,9 @@ public class InTrayItemsAdapter extends RecyclerView.Adapter<InTrayItemsAdapter.
                     if (!selecting) {
                         Intent intent = new Intent(view.getContext(), ItemActivity.class);
 
-                        Item selectedItem = inTrayFragment.getItems().get(getAdapterPosition());
+                        Item selectedItem = items.get(getAdapterPosition());
+
+                        intent.putExtra("hasNotificationsEnabled", selectedItem.getNotificationsEnabled());
 
                         intent.putExtra("requestCode", InTrayFragment.REQUEST_EDIT_ITEM);
                         intent.putExtra("item position", getAdapterPosition());

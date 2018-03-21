@@ -12,6 +12,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,15 +32,17 @@ import java.util.ArrayList;
 
 public class WaitingForFragment extends Fragment {
 
-    private static ArrayList<Item> items;
+//    private static ArrayList<Item> items;
+
+    private WaitingForAdapter waitingForAdapter;
 
     private TextView emptyWaitingForText;
+    private ProgressBar progressBar;
 
     private FirebaseAuth firebaseAuth;
     private DatabaseReference databaseReference;
 
     private RecyclerView recyclerView;
-    private RecyclerView.Adapter adapter;
     private RecyclerView.LayoutManager layoutManager;
 
     public static final int REQUEST_EDIT_WAITING_FOR_ITEM = 6;
@@ -48,7 +51,7 @@ public class WaitingForFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        items = new ArrayList<>();
+//        items = new ArrayList<>();
 
         firebaseAuth = MainActivity.firebaseAuth;
         databaseReference = MainActivity.databaseReference;
@@ -62,6 +65,7 @@ public class WaitingForFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_waiting_for, container, false);
 
         emptyWaitingForText = (TextView) view.findViewById(R.id.emtpy_waiting_for_list_text);
+        progressBar = (ProgressBar) view.findViewById(R.id.waiting_for_progress_bar);
 
         getActivity().setTitle(R.string.waiting_for);
 
@@ -74,8 +78,12 @@ public class WaitingForFragment extends Fragment {
         layoutManager = new GridLayoutManager(this.getActivity(), 2);
         recyclerView.setLayoutManager(layoutManager);
 
-        adapter = new WaitingForAdapter(this, items);
-        recyclerView.setAdapter(adapter);
+        waitingForAdapter = new WaitingForAdapter(this);
+        recyclerView.setAdapter(waitingForAdapter);
+
+        if (waitingForAdapter.getItems().size() > 0) {
+            emptyWaitingForText.setVisibility(View.GONE);
+        }
 
         super.onViewCreated(view, savedInstanceState);
     }
@@ -91,8 +99,8 @@ public class WaitingForFragment extends Fragment {
 
             ArrayList<Item> itemsToRemove = new ArrayList<>();
 
-            for (int i = 0; i < ((WaitingForAdapter)adapter).getSelectedIndexes().size(); ++i) {
-                itemsToRemove.add(items.get(((WaitingForAdapter)adapter).getSelectedIndexes().get(i)));
+            for (int i = 0; i < waitingForAdapter.getSelectedIndexes().size(); ++i) {
+                itemsToRemove.add(waitingForAdapter.getItems().get(waitingForAdapter.getSelectedIndexes().get(i)));
             }
 
             for (int i = 0; i < itemsToRemove.size(); ++i) {
@@ -106,28 +114,28 @@ public class WaitingForFragment extends Fragment {
                     }
                 }
 
-                for (int j = 0; j < items.size(); ++j) {
-                    if (items.get(j).getKey().equals(itemsToRemove.get(i).getKey())) {
-                        items.remove(j);
+                for (int j = 0; j < waitingForAdapter.getItems().size(); ++j) {
+                    if (waitingForAdapter.getItems().get(j).getKey().equals(itemsToRemove.get(i).getKey())) {
+                        waitingForAdapter.getItems().remove(j);
                         break;
                     }
                 }
 //
-                if (items.size() == 0) {
+                if (waitingForAdapter.getItems().size() == 0) {
                     getEmptyWaitingForText().setVisibility(View.VISIBLE);
                 }
 
-                adapter.notifyDataSetChanged();
+                waitingForAdapter.notifyDataSetChanged();
 
                 databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(itemsToRemove.get(i).getKey()).removeValue();
                 databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("waitingfor").child(itemsToRemove.get(i).getKey()).removeValue();
             }
 
-            ((WaitingForAdapter)adapter).clearSelected();
+            waitingForAdapter.clearSelected();
 
             ((MainFragmentActivity)getActivity()).getMenu().findItem(R.id.menu_delete).setVisible(false);
 
-            ((WaitingForAdapter)adapter).stopSelecting();
+            waitingForAdapter.stopSelecting();
 
             if (itemsToRemove.size() > 1) {
                 Toast.makeText(getActivity(), "Items deleted", Toast.LENGTH_SHORT).show();
@@ -143,11 +151,11 @@ public class WaitingForFragment extends Fragment {
         return emptyWaitingForText;
     }
 
-    public static ArrayList<Item> getItems() {
-        return items;
+    public void notifyAdapter() {
+        waitingForAdapter.notifyDataSetChanged();
     }
 
-    public void notifyAdapter() {
-        adapter.notifyDataSetChanged();
+    public ProgressBar getProgressBar() {
+        return progressBar;
     }
 }

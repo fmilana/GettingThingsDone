@@ -256,6 +256,8 @@ public class ProjectItemsAdapter extends RecyclerView.Adapter<ProjectItemsAdapte
                         intent.putExtra("item key", selectedItem.getKey());
                         intent.putExtra("project key", projectKey);
 
+                        intent.putExtra("hasNotificationsEnabled", selectedItem.getNotificationsEnabled());
+
                         intent.putExtra("item tags", selectedItem.getItemTags());
 
 
