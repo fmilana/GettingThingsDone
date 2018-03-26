@@ -13,9 +13,8 @@
         android:text="@string/register"
         android:textColor="@color/colorAccent"
         android:textAlignment="center"
-        android:textSize="35dp"
+        android:textSize="35sp"
         android:textStyle="bold"
-        android:paddingTop="20dp"
         android:paddingBottom="20dp"/>
 
     <LinearLayout
@@ -105,20 +104,9 @@
             android:textColor="@color/colorBlack"
             android:layout_marginBottom="10dp"/>
 
-        <!--<TextView-->
-            <!--android:id="@+id/verification_email_sent_textview"-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="match_parent"-->
-            <!--android:text="@string/verification_email_sent_to"-->
-            <!--android:textColor="@color/colorWhite"-->
-            <!--android:gravity="center"-->
-            <!--android:textSize="15dp"-->
-            <!--android:layout_marginBottom="10dp"-->
-            <!--/>-->
-
         <ProgressBar
             android:id="@+id/register_progress_bar"
-            android:visibility="invisible"
+            android:visibility="gone"
             android:paddingTop="40dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

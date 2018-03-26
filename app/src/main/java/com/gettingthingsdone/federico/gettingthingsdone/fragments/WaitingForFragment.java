@@ -51,6 +51,8 @@ public class WaitingForFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        System.out.println("++++++++++waitingforFragmentOnStart+++++++++++++++ MainFragmentActivity.getItems().size() = "+ MainFragmentActivity.getItems().size());
+
 //        items = new ArrayList<>();
 
         firebaseAuth = MainActivity.firebaseAuth;

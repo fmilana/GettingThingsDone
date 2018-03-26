@@ -1,6 +1,5 @@
 package com.gettingthingsdone.federico.gettingthingsdone.activities;
 
-import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
@@ -17,7 +16,6 @@ import android.widget.EditText;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import com.gettingthingsdone.federico.gettingthingsdone.Project;
 import com.gettingthingsdone.federico.gettingthingsdone.Tag;
 import com.gettingthingsdone.federico.gettingthingsdone.Item;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
@@ -63,7 +61,7 @@ public class ItemActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_new_in_tray_item);
+        setContentView(R.layout.activity_item);
 
         requestCode = getIntent().getIntExtra("requestCode", -1);
 

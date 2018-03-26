@@ -51,7 +51,7 @@ public class MaybeLaterFragment extends Fragment {
 
 //        items = new ArrayList<>();
 
-        System.out.println("MainFragmentActivity.getItems().size() WHEN LAUNCHING MAYBELATERFRAGMENT = " + MainFragmentActivity.getItems().size());
+        System.out.println("++++++++++maybelaterFragmentOnStart+++++++++++++++ MainFragmentActivity.getItems().size() = "+ MainFragmentActivity.getItems().size());
 
         firebaseAuth = MainActivity.firebaseAuth;
         databaseReference = MainActivity.databaseReference;

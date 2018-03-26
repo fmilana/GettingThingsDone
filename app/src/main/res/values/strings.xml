@@ -11,6 +11,23 @@
     <string name="password">Password</string>
     <string name="register">Register</string>
     <string name="log_in">Log in</string>
+    <string name="password_reset">Password reset</string>
+    <string name="send_email">Send email</string>
+    <string name="password_reset_instructions">Enter your email address to receive instructions to reset your password</string>
+
+    <string name="please_insert_an_email_address">Please insert an email address</string>
+    <string name="please_insert_a_valid_email_address">Please enter a valid email address</string>
+    <string name="please_insert_a_password">Please insert a password</string>
+    <string name="please_confirm_your_password">Please confirm your password</string>
+    <string name="passwords_do_not_match">Passwords do not match</string>
+    <!--<string name="please_try_a_different_email_address_or_a_longer_password">Please try a different email address or a longer password</string>-->
+    <string name="please_enter_a_password_longer_than_6_characters">Please enter a password longer than 6 characters</string>
+    <string name="an_account_already_exists_with_that_email_address">An account with that email address already exists</string>
+    <string name="something_went_wrong_please_try_again">Something went wrong. Please try again</string>
+    <string name="email_address_does_not_belong_to_any_account">Email address does not belong to any account</string>
+    <string name="registration_successful">Registration successful</string>
+    <string name="email_sent">Email sent</string>
+    <string name="wrong_password">The password you have entered is incorrect. Please try again</string>
 
     <string name="confirm_password">Confirm password</string>
 
@@ -56,15 +73,16 @@
 
     <string name="you_have_no_tags">You have no Tags.\nTap the \"+\" button to create one.</string>
     <string name="in_tray_is_empty">Your In Tray is empty.\nTap the \"+\" button to insert an Item.</string>
-    <string name="trash_is_empty">Your Trash is empty.</string>
+    <string name="trash_is_empty">Your Trash list is empty.</string>
     <string name="maybe_later_is_empty">Your Maybe/Later list is empty.</string>
     <string name="reference_is_empty">Your Reference list is empty.</string>
     <string name="waiting_for_is_empty">Your Waiting For list is empty.</string>
     <string name="this_item_has_no_tags">This Item has no Tags.</string>
     <string name="projects_is_empty">Your Project list is empty.</string>
     <string name="this_project_has_no_items">This Project has no Items.</string>
+    <string name="this_day_has_no_items">You have no Items due this day.</string>
 
-    <string name="notifications">Tag notifications</string>
+    <string name="tag_notifications">Tag notifications</string>
 
 
     <string name="time">Time</string>
@@ -119,6 +137,26 @@
     <string name="in_tray_notification_channel_name">In Tray Clarification Reminders</string>
     <string name="in_tray_notification_title">Time to Clarify your In Tray Items</string>
 
-    <string name="settings_notifications_textview">Notifications</string>
+    <string name="calendar_notification_channel_name">Calendar notifications</string>
+    <!--<string name="calendar_notification_title"></string>-->
+
+    <string name="notifications">Notifications</string>
+    <string name="settings_intray_reminders">In Tray weekly Clarification reminders</string>
+    <string name="day_of_the_week">Day of the week</string>
+    <string name="settings_calendar_notifications">Calendar notifications</string>
+    <string name="account">Account</string>
+    <string name="reset_account">Reset account</string>
+    <string name="delete_account">Delete account</string>
+
+    <string name="reset_account_confirmation_title">Are you sure you want to reset your account?</string>
+    <string name="reset_account_confirmation_message">You will keep your account, but all your data will be lost</string>
+
+    <string name="reset">Reset</string>
+
+    <string name="delete_account_confirmation_title">Are you sure you want to delete your account?</string>
+    <string name="delete_account_confirmation_message">Your account and your data will be permanently deleted and you will be logged out</string>
+
+    <string name="enter_password_to_delete_account">Please enter your password to delete your account</string>
+    <string name="could_not_delete_account">Something went wrong while deleting your account. Please try again later</string>
 
 </resources>

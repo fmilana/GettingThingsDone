@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -18,6 +19,9 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
+import com.google.firebase.auth.FirebaseAuthUserCollisionException;
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -48,7 +52,9 @@ public class RegisterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
-        getSupportActionBar().hide();
+        getSupportActionBar().setElevation(0);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
 
         firebaseAuth = MainActivity.firebaseAuth;
         databaseReference = MainActivity.databaseReference;
@@ -69,6 +75,15 @@ public class RegisterActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+        }
+
+        return true;
+    }
+
     private void registerUser() {
         String email = emailEditText.getText().toString().trim();
         String password = passwordEditText.getText().toString().trim();
@@ -76,34 +91,34 @@ public class RegisterActivity extends AppCompatActivity {
 
         if (TextUtils.isEmpty(email)) {
             //email is empty
-            Toast.makeText(RegisterActivity.this, "Please insert an email address",
+            Toast.makeText(RegisterActivity.this, R.string.please_insert_an_email_address,
                     Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (!isEmailValid(email)) {
-            Toast.makeText(RegisterActivity.this, "Please enter a valid email address",
+            Toast.makeText(RegisterActivity.this, R.string.please_insert_a_valid_email_address,
                     Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (TextUtils.isEmpty(password)) {
             //password is empty
-            Toast.makeText(RegisterActivity.this, "Please insert a password",
+            Toast.makeText(RegisterActivity.this, R.string.please_insert_a_password,
                     Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (TextUtils.isEmpty(confirmedPassword)) {
             //confirmed password is empty
-            Toast.makeText(RegisterActivity.this, "Please confirm your password",
+            Toast.makeText(RegisterActivity.this, R.string.please_confirm_your_password,
                     Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (!password.equals(confirmedPassword)) {
             //passwords don't match
-            Toast.makeText(RegisterActivity.this, "Passwords do not match",
+            Toast.makeText(RegisterActivity.this, R.string.passwords_do_not_match,
                     Toast.LENGTH_SHORT).show();
             return;
         }
@@ -118,7 +133,7 @@ public class RegisterActivity extends AppCompatActivity {
                             //user is successfully registered
                             progressBar.setVisibility(View.INVISIBLE);
 
-                            Toast.makeText(RegisterActivity.this, "Registration successful",
+                            Toast.makeText(RegisterActivity.this, R.string.registration_successful,
                                     Toast.LENGTH_SHORT).show();
 
 
@@ -129,11 +144,19 @@ public class RegisterActivity extends AppCompatActivity {
                             Intent intent = new Intent(RegisterActivity.this, MainFragmentActivity.class);
                             RegisterActivity.this.startActivity(intent);
                         } else {
-                            //user is not successfully registered
                             progressBar.setVisibility(View.INVISIBLE);
 
-                            Toast.makeText(RegisterActivity.this, "Please try a different email address or a longer password",
-                                    Toast.LENGTH_SHORT).show();
+                            try {
+                                throw task.getException();
+                            } catch (FirebaseAuthWeakPasswordException e) {
+                                Toast.makeText(RegisterActivity.this, R.string.please_enter_a_password_longer_than_6_characters, Toast.LENGTH_SHORT).show();
+                            } catch (FirebaseAuthInvalidCredentialsException e) {
+                                Toast.makeText(RegisterActivity.this, R.string.please_insert_a_valid_email_address, Toast.LENGTH_SHORT).show();
+                            } catch (FirebaseAuthUserCollisionException e) {
+                                Toast.makeText(RegisterActivity.this, R.string.an_account_already_exists_with_that_email_address, Toast.LENGTH_SHORT).show();
+                            } catch (Exception e) {
+                                Toast.makeText(RegisterActivity.this, R.string.something_went_wrong_please_try_again, Toast.LENGTH_SHORT).show();
+                            }
                         }
                     }
                 });

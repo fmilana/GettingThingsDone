@@ -50,6 +50,8 @@ public class ProjectsFragment extends Fragment {
 
 //        projects = new ArrayList<>();
 
+        System.out.println("++++++++++projectsfragmentOnStart+++++++++++++++ MainFragmentActivity.getItems().size() = "+ MainFragmentActivity.getItems().size());
+
         firebaseAuth = MainActivity.firebaseAuth;
         databaseReference = MainActivity.databaseReference;
     }

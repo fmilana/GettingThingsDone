@@ -1,7 +1,6 @@
 package com.gettingthingsdone.federico.gettingthingsdone.adapters;
 
 import android.app.AlertDialog;
-import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -56,16 +55,16 @@ public class WaitingForAdapter extends RecyclerView.Adapter<WaitingForAdapter.Vi
 
     private ArrayList<Item> items;
 
-    private static ArrayList<Project> projects;
+    private ArrayList<Project> projects;
 
-    private static Item movingItem;
+    private Item movingItem;
 
-    private static int moveIntoProjectPosition;
+    private int moveIntoProjectPosition;
 
-    private static ArrayList<Integer> selectedIndexes;
-    private static ArrayList<CardView> selectedCards;
+    private ArrayList<Integer> selectedIndexes;
+    private ArrayList<CardView> selectedCards;
 
-    private static boolean selecting;
+    private boolean selecting;
 
 
 
@@ -82,6 +81,8 @@ public class WaitingForAdapter extends RecyclerView.Adapter<WaitingForAdapter.Vi
         selectedIndexes = new ArrayList<>();
         selectedCards = new ArrayList<>();
         selecting = false;
+
+        System.out.println("+++++++++waitingforadapteronstart++++++++++++++++ MainFragmentActivity.getItems().size() = "+ MainFragmentActivity.getItems().size());
 
         databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("waitingfor").addValueEventListener(new ValueEventListener() {
             @Override
@@ -217,7 +218,7 @@ public class WaitingForAdapter extends RecyclerView.Adapter<WaitingForAdapter.Vi
 
     @Override
     public WaitingForAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View cardView = LayoutInflater.from(parent.getContext()).inflate(R.layout.maybe_later_item, parent, false);
+        View cardView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_with_move_button, parent, false);
         ViewHolder viewHolder = new ViewHolder(waitingForFragment, cardView);
         return viewHolder;
     }
@@ -235,12 +236,12 @@ public class WaitingForAdapter extends RecyclerView.Adapter<WaitingForAdapter.Vi
         return items.size();
     }
 
-    public static void clearSelected() {
+    public void clearSelected() {
         selectedCards.clear();
         selectedIndexes.clear();
     }
 
-    public static void stopSelecting() {
+    public void stopSelecting() {
         selecting = false;
     }
 
@@ -276,17 +277,90 @@ public class WaitingForAdapter extends RecyclerView.Adapter<WaitingForAdapter.Vi
 
             moveButton = (AppCompatButton) view.findViewById(R.id.move_button);
 
+            addMoveButtonListener();
+
+            addCardListeners();
+        }
+
+        private void addMoveButtonListener() {
             moveButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    showMoveDialog();
+                    if (!selecting) {
+                        showMoveDialog();
+                    } else {
+                        //deselecting card
+                        if (selectedCards.contains(cardView)) {
+                            cardView.setCardBackgroundColor(view.getResources().getColor(R.color.colorWhite));
+                            moveButton.setBackgroundColor(view.getResources().getColor(R.color.colorLightGrey));
+
+                            selectedCards.remove(cardView);
+                            selectedIndexes.remove(new Integer(getAdapterPosition()));
+
+                            if (selectedCards.size() == 0) {
+                                selecting = false;
+//                                toolbar.setBackgroundResource(R.color.colorPrimary);
+                                ((MainFragmentActivity)waitingForFragment.getActivity()).getMenu().findItem(R.id.menu_delete).setVisible(false);
+                            }
+
+                        } else {
+                            //adding another card to the selection
+                            cardView.setCardBackgroundColor(view.getResources().getColor(R.color.colorLightGrey2));
+                            moveButton.setBackgroundColor(view.getResources().getColor(R.color.colorClarifyButtonSelected));
+
+                            selectedCards.add(cardView);
+                            selectedIndexes.add(getAdapterPosition());
+                        }
+                    }
                 }
             });
 
-            addCardListeners(constraintLayout);
+            moveButton.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+
+                    CardView cardView = (CardView)itemView.findViewById(R.id.maybe_later_item_card_view);
+
+                    cardView.setCardBackgroundColor(view.getResources().getColor(R.color.colorLightGrey2));
+                    moveButton.setBackgroundColor(view.getResources().getColor(R.color.colorClarifyButtonSelected));
+
+                    selecting = true;
+
+                    selectedCards.add(cardView);
+                    selectedIndexes.add(getAdapterPosition());
+
+//                    toolbar.setBackgroundResource(R.color.colorPrimaryLight);
+
+                    ((MainFragmentActivity) waitingForFragment.getActivity()).getMenu().findItem(R.id.menu_delete).setVisible(true);
+
+                    return true;
+                }
+            });
+
+            moveButton.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+
+                    CardView cardView = (CardView)itemView.findViewById(R.id.maybe_later_item_card_view);
+
+                    cardView.setCardBackgroundColor(view.getResources().getColor(R.color.colorLightGrey2));
+                    moveButton.setBackgroundColor(view.getResources().getColor(R.color.colorClarifyButtonSelected));
+
+                    selecting = true;
+
+                    selectedCards.add(cardView);
+                    selectedIndexes.add(getAdapterPosition());
+
+//                    toolbar.setBackgroundResource(R.color.colorPrimaryLight);
+
+                    ((MainFragmentActivity) waitingForFragment.getActivity()).getMenu().findItem(R.id.menu_delete).setVisible(true);
+
+                    return true;
+                }
+            });
         }
 
-        private void addCardListeners(ConstraintLayout constraintLayout) {
+        private void addCardListeners() {
             constraintLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -308,8 +382,6 @@ public class WaitingForAdapter extends RecyclerView.Adapter<WaitingForAdapter.Vi
                         waitingForFragment.startActivity(intent);
 
                     } else {
-
-                        CardView cardView = (CardView)itemView.findViewById(R.id.maybe_later_item_card_view);
 
                         //deselecting card
                         if (selectedCards.contains(cardView)) {
@@ -416,10 +488,10 @@ public class WaitingForAdapter extends RecyclerView.Adapter<WaitingForAdapter.Vi
         }
 
         private void moveItemTo(String list) {
-            String editedInTrayItemValue = MainActivity.databaseReference.push().getKey();
+            String editedInTrayItemValue = databaseReference.push().getKey();
 
-            MainActivity.databaseReference.child("users").child(MainActivity.firebaseAuth.getCurrentUser().getUid()).child(list).child(movingItem.getKey()).setValue(editedInTrayItemValue);
-            MainActivity.databaseReference.child("users").child(MainActivity.firebaseAuth.getCurrentUser().getUid()).child("intray").child(movingItem.getKey()).removeValue();
+            databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child(list).child(movingItem.getKey()).setValue(editedInTrayItemValue);
+            databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("waitingfor").child(movingItem.getKey()).removeValue();
 
             items.remove(movingItem);
 
@@ -429,7 +501,17 @@ public class WaitingForAdapter extends RecyclerView.Adapter<WaitingForAdapter.Vi
                 waitingForFragment.getEmptyWaitingForText().setVisibility(View.VISIBLE);
             }
 
-            Toast.makeText(waitingForFragment.getActivity(), "Item moved to " + list, Toast.LENGTH_SHORT).show();
+            switch (list) {
+                case "maybelater":
+                    Toast.makeText(waitingForFragment.getActivity(), waitingForFragment.getActivity().getResources().getString(R.string.maybe_later), Toast.LENGTH_SHORT).show();
+                    break;
+                case "reference":
+                    Toast.makeText(waitingForFragment.getActivity(), waitingForFragment.getActivity().getResources().getString(R.string.reference), Toast.LENGTH_SHORT).show();
+                    break;
+                case "trash":
+                    Toast.makeText(waitingForFragment.getActivity(), waitingForFragment.getActivity().getResources().getString(R.string.trash), Toast.LENGTH_SHORT).show();
+                    break;
+            }
         }
 
         private void moveItemToProjectPopup() {
@@ -482,7 +564,7 @@ public class WaitingForAdapter extends RecyclerView.Adapter<WaitingForAdapter.Vi
 
                         String editedInTrayItemValue = MainActivity.databaseReference.push().getKey();
 
-                        MainActivity.databaseReference.child("users").child(MainActivity.firebaseAuth.getCurrentUser().getUid()).child("intray").child(movingItem.getKey()).removeValue();
+                        MainActivity.databaseReference.child("users").child(MainActivity.firebaseAuth.getCurrentUser().getUid()).child("waitingfor").child(movingItem.getKey()).removeValue();
                         MainActivity.databaseReference.child("users").child(MainActivity.firebaseAuth.getCurrentUser().getUid())
                                 .child("projects").child(project.getKey()).child("projectItems")
                                 .child(movingItem.getKey()).setValue(editedInTrayItemValue);
@@ -560,7 +642,7 @@ public class WaitingForAdapter extends RecyclerView.Adapter<WaitingForAdapter.Vi
                     Project newProject = new Project(projectTitle, projectDescription, projectItems);
 
                     MainActivity.databaseReference.child("users").child(MainActivity.firebaseAuth.getCurrentUser().getUid()).child("projects").push().setValue(newProject);
-                    MainActivity.databaseReference.child("users").child(MainActivity.firebaseAuth.getCurrentUser().getUid()).child("intray").child(movingItem.getKey()).removeValue();
+                    MainActivity.databaseReference.child("users").child(MainActivity.firebaseAuth.getCurrentUser().getUid()).child("waitingfor").child(movingItem.getKey()).removeValue();
 
                     items.remove(movingItem);
 

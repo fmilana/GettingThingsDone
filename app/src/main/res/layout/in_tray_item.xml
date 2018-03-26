@@ -29,12 +29,12 @@
             <TextView
                 android:id="@+id/in_tray_item_text_view"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="80dp"
                 android:layout_margin="@dimen/standard_padding"
                 android:gravity="center"
                 android:padding="@dimen/standard_padding"
                 android:textColor="@color/colorBlack"
-                android:textSize="16dp"
+                android:textSize="14sp"
                 card_view:layout_constraintBottom_toTopOf="@+id/clarify_button"
                 card_view:layout_constraintTop_toTopOf="@id/item_constraint_layout" />
 

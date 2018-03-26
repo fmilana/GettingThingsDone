@@ -53,6 +53,8 @@ public class TrashFragment extends Fragment {
 
 //        items = new ArrayList<>();
 
+        System.out.println("++++++++++trashFragmentOnStart+++++++++++++++ MainFragmentActivity.getItems().size() = "+ MainFragmentActivity.getItems().size());
+
         firebaseAuth = MainActivity.firebaseAuth;
         databaseReference = MainActivity.databaseReference;
     }

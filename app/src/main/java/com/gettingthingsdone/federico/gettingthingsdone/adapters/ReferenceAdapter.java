@@ -1,7 +1,6 @@
 package com.gettingthingsdone.federico.gettingthingsdone.adapters;
 
 import android.app.AlertDialog;
-import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -29,10 +28,7 @@ import com.gettingthingsdone.federico.gettingthingsdone.R;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.ItemActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.MainActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.MainFragmentActivity;
-import com.gettingthingsdone.federico.gettingthingsdone.fragments.InTrayFragment;
-import com.gettingthingsdone.federico.gettingthingsdone.fragments.MaybeLaterFragment;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.ReferenceFragment;
-import com.gettingthingsdone.federico.gettingthingsdone.fragments.TrashFragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -58,15 +54,15 @@ public class ReferenceAdapter extends RecyclerView.Adapter<ReferenceAdapter.View
     private ReferenceFragment referenceFragment;
 
     private ArrayList<Item> items;
-    private static ArrayList<Project> projects;
+    private ArrayList<Project> projects;
 
-    private static Item movingItem;
-    private static int moveIntoProjectPosition;
+    private Item movingItem;
+    private int moveIntoProjectPosition;
 
-    private static ArrayList<Integer> selectedIndexes;
-    private static ArrayList<CardView> selectedCards;
+    private ArrayList<Integer> selectedIndexes;
+    private ArrayList<CardView> selectedCards;
 
-    private static boolean selecting;
+    private boolean selecting;
 
 
 
@@ -217,7 +213,7 @@ public class ReferenceAdapter extends RecyclerView.Adapter<ReferenceAdapter.View
 
     @Override
     public ReferenceAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View cardView = LayoutInflater.from(parent.getContext()).inflate(R.layout.maybe_later_item, parent, false);
+        View cardView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_with_move_button, parent, false);
         ViewHolder viewHolder = new ViewHolder(referenceFragment, cardView);
         return viewHolder;
     }
@@ -235,12 +231,12 @@ public class ReferenceAdapter extends RecyclerView.Adapter<ReferenceAdapter.View
         return items.size();
     }
 
-    public static void clearSelected() {
+    public void clearSelected() {
         selectedCards.clear();
         selectedIndexes.clear();
     }
 
-    public static void stopSelecting() {
+    public void stopSelecting() {
         selecting = false;
     }
 
@@ -276,17 +272,68 @@ public class ReferenceAdapter extends RecyclerView.Adapter<ReferenceAdapter.View
 
             moveButton = (AppCompatButton) view.findViewById(R.id.move_button);
 
+            addMoveButtonListener();
+
+            addCardListeners();
+        }
+
+        private void addMoveButtonListener() {
             moveButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    showMoveDialog();
+                    if (!selecting) {
+                        showMoveDialog();
+                    } else {
+                        //deselecting card
+                        if (selectedCards.contains(cardView)) {
+                            cardView.setCardBackgroundColor(view.getResources().getColor(R.color.colorWhite));
+                            moveButton.setBackgroundColor(view.getResources().getColor(R.color.colorLightGrey));
+
+                            selectedCards.remove(cardView);
+                            selectedIndexes.remove(new Integer(getAdapterPosition()));
+
+                            if (selectedCards.size() == 0) {
+                                selecting = false;
+//                                toolbar.setBackgroundResource(R.color.colorPrimary);
+                                ((MainFragmentActivity)referenceFragment.getActivity()).getMenu().findItem(R.id.menu_delete).setVisible(false);
+                            }
+
+                        } else {
+                            //adding another card to the selection
+                            cardView.setCardBackgroundColor(view.getResources().getColor(R.color.colorLightGrey2));
+                            moveButton.setBackgroundColor(view.getResources().getColor(R.color.colorClarifyButtonSelected));
+
+                            selectedCards.add(cardView);
+                            selectedIndexes.add(getAdapterPosition());
+                        }
+                    }
                 }
             });
 
-            addCardListeners(constraintLayout);
+            moveButton.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+
+                    CardView cardView = (CardView)itemView.findViewById(R.id.maybe_later_item_card_view);
+
+                    cardView.setCardBackgroundColor(view.getResources().getColor(R.color.colorLightGrey2));
+                    moveButton.setBackgroundColor(view.getResources().getColor(R.color.colorClarifyButtonSelected));
+
+                    selecting = true;
+
+                    selectedCards.add(cardView);
+                    selectedIndexes.add(getAdapterPosition());
+
+//                    toolbar.setBackgroundResource(R.color.colorPrimaryLight);
+
+                    ((MainFragmentActivity) referenceFragment.getActivity()).getMenu().findItem(R.id.menu_delete).setVisible(true);
+
+                    return true;
+                }
+            });
         }
 
-        private void addCardListeners(ConstraintLayout constraintLayout) {
+        private void addCardListeners() {
             constraintLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -308,9 +355,6 @@ public class ReferenceAdapter extends RecyclerView.Adapter<ReferenceAdapter.View
                         referenceFragment.startActivity(intent);
 
                     } else {
-
-                        CardView cardView = (CardView)itemView.findViewById(R.id.maybe_later_item_card_view);
-
                         //deselecting card
                         if (selectedCards.contains(cardView)) {
                             cardView.setCardBackgroundColor(view.getResources().getColor(R.color.colorWhite));
@@ -340,8 +384,6 @@ public class ReferenceAdapter extends RecyclerView.Adapter<ReferenceAdapter.View
             constraintLayout.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View view) {
-
-                    CardView cardView = (CardView)itemView.findViewById(R.id.maybe_later_item_card_view);
 
                     cardView.setCardBackgroundColor(view.getResources().getColor(R.color.colorLightGrey2));
                     moveButton.setBackgroundColor(view.getResources().getColor(R.color.colorClarifyButtonSelected));
@@ -416,10 +458,10 @@ public class ReferenceAdapter extends RecyclerView.Adapter<ReferenceAdapter.View
         }
 
         private void moveItemTo(String list) {
-            String editedInTrayItemValue = MainActivity.databaseReference.push().getKey();
+            String editedInTrayItemValue = databaseReference.push().getKey();
 
-            MainActivity.databaseReference.child("users").child(MainActivity.firebaseAuth.getCurrentUser().getUid()).child(list).child(movingItem.getKey()).setValue(editedInTrayItemValue);
-            MainActivity.databaseReference.child("users").child(MainActivity.firebaseAuth.getCurrentUser().getUid()).child("intray").child(movingItem.getKey()).removeValue();
+            databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child(list).child(movingItem.getKey()).setValue(editedInTrayItemValue);
+           databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("reference").child(movingItem.getKey()).removeValue();
 
             items.remove(movingItem);
 
@@ -429,7 +471,17 @@ public class ReferenceAdapter extends RecyclerView.Adapter<ReferenceAdapter.View
                 referenceFragment.getEmptyReferenceText().setVisibility(View.VISIBLE);
             }
 
-            Toast.makeText(referenceFragment.getActivity(), "Item moved to " + list, Toast.LENGTH_SHORT).show();
+            switch (list) {
+                case "waitingfor":
+                    Toast.makeText(referenceFragment.getActivity(), referenceFragment.getActivity().getResources().getString(R.string.waiting_for), Toast.LENGTH_SHORT).show();
+                    break;
+                case "maybelater":
+                    Toast.makeText(referenceFragment.getActivity(), referenceFragment.getActivity().getResources().getString(R.string.maybe_later), Toast.LENGTH_SHORT).show();
+                    break;
+                case "trash":
+                    Toast.makeText(referenceFragment.getActivity(), referenceFragment.getActivity().getResources().getString(R.string.trash), Toast.LENGTH_SHORT).show();
+                    break;
+            }
         }
 
         private void moveItemToProjectPopup() {
@@ -480,10 +532,10 @@ public class ReferenceAdapter extends RecyclerView.Adapter<ReferenceAdapter.View
                     if (moveIntoProjectPosition != projectTitles.length-1) {
                         Project project = projects.get(moveIntoProjectPosition);
 
-                        String editedInTrayItemValue = MainActivity.databaseReference.push().getKey();
+                        String editedInTrayItemValue = databaseReference.push().getKey();
 
-                        MainActivity.databaseReference.child("users").child(MainActivity.firebaseAuth.getCurrentUser().getUid()).child("intray").child(movingItem.getKey()).removeValue();
-                        MainActivity.databaseReference.child("users").child(MainActivity.firebaseAuth.getCurrentUser().getUid())
+                        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("reference").child(movingItem.getKey()).removeValue();
+                        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid())
                                 .child("projects").child(project.getKey()).child("projectItems")
                                 .child(movingItem.getKey()).setValue(editedInTrayItemValue);
 
@@ -555,12 +607,12 @@ public class ReferenceAdapter extends RecyclerView.Adapter<ReferenceAdapter.View
                     String projectDescription = projectDescriptionEditText.getText().toString().trim();
                     HashMap<String, String> projectItems = new HashMap<>();
 
-                    projectItems.put(movingItem.getKey(), MainActivity.databaseReference.push().getKey());
+                    projectItems.put(movingItem.getKey(), databaseReference.push().getKey());
 
                     Project newProject = new Project(projectTitle, projectDescription, projectItems);
 
-                    MainActivity.databaseReference.child("users").child(MainActivity.firebaseAuth.getCurrentUser().getUid()).child("projects").push().setValue(newProject);
-                    MainActivity.databaseReference.child("users").child(MainActivity.firebaseAuth.getCurrentUser().getUid()).child("intray").child(movingItem.getKey()).removeValue();
+                    databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("projects").push().setValue(newProject);
+                    databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("reference").child(movingItem.getKey()).removeValue();
 
                     items.remove(movingItem);
 

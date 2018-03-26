@@ -35,7 +35,7 @@ public class InTrayAdapter extends RecyclerView.Adapter<InTrayAdapter.ViewHolder
 
     private InTrayFragment inTrayFragment;
 
-    private static ArrayList<Item> items;
+    private ArrayList<Item> items;
     private ArrayList<Integer> selectedIndexes;
     private ArrayList<CardView> selectedCards;
 
@@ -187,7 +187,7 @@ public class InTrayAdapter extends RecyclerView.Adapter<InTrayAdapter.ViewHolder
         return selectedIndexes;
     }
 
-    public static ArrayList<Item> getItems() {
+    public ArrayList<Item> getItems() {
         return items;
     }
 
@@ -206,9 +206,10 @@ public class InTrayAdapter extends RecyclerView.Adapter<InTrayAdapter.ViewHolder
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
-        private ConstraintLayout constraintLayout;
+        private ConstraintLayout cardConstraintLayout;
         private TextView itemTextView;
         private AppCompatButton clarifyButton;
+        private CardView cardView;
 
         private InTrayFragment inTrayFragment;
 
@@ -223,26 +224,76 @@ public class InTrayAdapter extends RecyclerView.Adapter<InTrayAdapter.ViewHolder
 
             clarifyButton = (AppCompatButton) view.findViewById(R.id.clarify_button);
 
-            constraintLayout = view.findViewById(R.id.item_constraint_layout);
+            cardView = (CardView) itemView.findViewById(R.id.in_tray_item_card_view);
 
-            addCardListeners(constraintLayout);
+            cardConstraintLayout = view.findViewById(R.id.item_constraint_layout);
 
+            addCardListeners();
+
+            addClarifyButtonListener();
+        }
+
+        private void addClarifyButtonListener() {
             clarifyButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
 
-                    Item item = items.get(getAdapterPosition());
+                    if (!selecting) {
+                        Item item = items.get(getAdapterPosition());
 
-                    Clarification clarification = new Clarification(inTrayFragment, item);
+                        Clarification clarification = new Clarification(inTrayFragment, item);
 
-                    clarification.showClarifyDialog();
+                        clarification.showClarifyDialog();
+                    } else {
+                        //deselecting card
+                        if (selectedCards.contains(cardView)) {
+                            cardView.setCardBackgroundColor(view.getResources().getColor(R.color.colorWhite));
+                            clarifyButton.setBackgroundColor(view.getResources().getColor(R.color.colorLightGrey));
 
+                            selectedCards.remove(cardView);
+                            selectedIndexes.remove(new Integer(getAdapterPosition()));
+
+                            if (selectedCards.size() == 0) {
+                                selecting = false;
+//                                toolbar.setBackgroundResource(R.color.colorPrimary);
+                                ((MainFragmentActivity) ((Fragment) inTrayFragment).getActivity()).getMenu().findItem(R.id.menu_delete).setVisible(false);
+                            }
+
+                        } else {
+                            //adding another card to the selection
+                            cardView.setCardBackgroundColor(view.getResources().getColor(R.color.colorLightGrey2));
+                            clarifyButton.setBackgroundColor(view.getResources().getColor(R.color.colorClarifyButtonSelected));
+
+                            selectedCards.add(cardView);
+                            selectedIndexes.add(getAdapterPosition());
+                        }
+                    }
+                }
+            });
+
+            clarifyButton.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+                    CardView cardView = (CardView) itemView.findViewById(R.id.in_tray_item_card_view);
+
+                    cardView.setCardBackgroundColor(view.getResources().getColor(R.color.colorLightGrey2));
+                    clarifyButton.setBackgroundColor(view.getResources().getColor(R.color.colorClarifyButtonSelected));
+
+                    selecting = true;
+
+                    selectedCards.add(cardView);
+                    selectedIndexes.add(getAdapterPosition());
+
+
+                    ((MainFragmentActivity) ((Fragment) inTrayFragment).getActivity()).getMenu().findItem(R.id.menu_delete).setVisible(true);
+
+                    return true;
                 }
             });
         }
 
 
-        private void addCardListeners(ConstraintLayout cardConstraintLayout) {
+        private void addCardListeners() {
             cardConstraintLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -265,8 +316,6 @@ public class InTrayAdapter extends RecyclerView.Adapter<InTrayAdapter.ViewHolder
                         inTrayFragment.startActivity(intent);
 
                     } else {
-                        CardView cardView = (CardView) itemView.findViewById(R.id.in_tray_item_card_view);
-
                         //deselecting card
                         if (selectedCards.contains(cardView)) {
                             cardView.setCardBackgroundColor(view.getResources().getColor(R.color.colorWhite));

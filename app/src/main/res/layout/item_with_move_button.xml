@@ -29,12 +29,12 @@
             <TextView
                 android:id="@+id/maybe_later_item_text_view"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="80dp"
                 android:layout_margin="@dimen/standard_padding"
                 android:gravity="center"
                 android:padding="@dimen/standard_padding"
                 android:textColor="@color/colorBlack"
-                android:textSize="16dp"
+                android:textSize="14sp"
                 card_view:layout_constraintBottom_toTopOf="@+id/move_button"
                 card_view:layout_constraintTop_toTopOf="@id/maybe_later_item_constraint_layout" />
 

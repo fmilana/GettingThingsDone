@@ -71,6 +71,8 @@ public class CalendarFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        System.out.println("++++++++++calendarFragmentOnStart+++++++++++++++ MainFragmentActivity.getItems().size() = "+ MainFragmentActivity.getItems().size());
+
         this.calendarFragment = this;
 
         firebaseAuth = MainActivity.firebaseAuth;
@@ -102,6 +104,7 @@ public class CalendarFragment extends Fragment {
         monthTextView.setText(monthDateFormat.format(new Date()));
 
         itemRecyclerView = (RecyclerView)view.findViewById(R.id.day_items_recycler_view);
+
 
         emptyCalendarItemsText = (TextView)view.findViewById(R.id.this_day_has_no_items_textview);
         progressBar = (ProgressBar)view.findViewById(R.id.calendar_progress_bar);
@@ -176,23 +179,26 @@ public class CalendarFragment extends Fragment {
 
                     if (itemsToRemove.get(i).getKey().equals(mainActivityItem.getKey())) {
                         MainFragmentActivity.getItems().remove(mainActivityItem);
+                        break;
                     }
                 }
 
                 for (int j = 0; j < calendarAdapter.getItems().size(); ++j) {
                     if (calendarAdapter.getItems().get(j).getKey().equals(itemsToRemove.get(i).getKey())) {
                         calendarAdapter.getItems().remove(j);
-                    }
 
-                    ////removes dots////
-                    try {
-                        Date date = new SimpleDateFormat("ddMMyyyy").parse(selectedDate);
-                        calendarView.removeEvent(calendarView.getEvents(date).get(calendarView.getEvents(date).size()-1));
+                        ////removes dots////
+                        try {
+                            Date date = new SimpleDateFormat("ddMMyyyy").parse(selectedDate);
+                            calendarView.removeEvent(calendarView.getEvents(date).get(calendarView.getEvents(date).size()-1));
 
-                        System.out.println("DELETED EVENT");
+                            System.out.println("DELETED EVENT");
 
-                    } catch (ParseException e) {
-                        e.printStackTrace();
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+
+                        break;
                     }
                 }
 
@@ -235,11 +241,14 @@ public class CalendarFragment extends Fragment {
         databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("calendar").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+
+                System.out.println("READING DAY " + (String)dataSnapshot.getKey() + " WITH " + dataSnapshot.getChildrenCount() + " EVENTS");
+
                 for (int i = 0; i < dataSnapshot.getChildrenCount(); ++i) {
                     try {
                         Date date = new SimpleDateFormat("ddMMyyyy").parse(dataSnapshot.getKey());
 
-                        if (isAdded() && getActivity() != null) {
+                        if (isAdded() && getActivity() != null && calendarView.getEvents(date).size() < dataSnapshot.getChildrenCount()) {
                             calendarView.addEvent(new Event(getResources().getColor(R.color.colorAccent), date.getTime()));
                         }
 
@@ -276,5 +285,17 @@ public class CalendarFragment extends Fragment {
 
             }
         });
+    }
+
+    public void notifyAdapter() {
+        calendarAdapter.notifyDataSetChanged();
+    }
+
+    public void removeEventFromCalendarDay(Date date) {
+        calendarView.removeEvent(new Event(getResources().getColor(R.color.colorAccent), date.getTime()));
+    }
+
+    public void addEventToCalendarDay(Date date) {
+        calendarView.addEvent(new Event(getResources().getColor(R.color.colorAccent), date.getTime()));
     }
 }

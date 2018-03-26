@@ -41,10 +41,10 @@ public class TagsAdapter extends RecyclerView.Adapter<TagsAdapter.ViewHolder> {
 
     private GeoFire geoFire;
 
-    private static ArrayList<CardView> selectedCards;
-    private static ArrayList<Integer> selectedIndexes;
+    private ArrayList<CardView> selectedCards;
+    private ArrayList<Integer> selectedIndexes;
 
-    private static boolean selecting = false;
+    private boolean selecting = false;
 
     public TagsAdapter(final TagsFragment tagsFragment) {
         this.tagsFragment = tagsFragment;
@@ -205,22 +205,29 @@ public class TagsAdapter extends RecyclerView.Adapter<TagsAdapter.ViewHolder> {
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
-        protected TextView tagTextView;
+        private TextView tagTextView;
+        private CardView cardView;
 
         private TagsFragment tagsFragment;
 
-        public ViewHolder(final TagsFragment tagsFragment, View cardView) {
-            super(cardView);
+        public ViewHolder(final TagsFragment tagsFragment, View view) {
+            super(view);
 
             this.tagsFragment = tagsFragment;
 
 //            tags = tags;
 
-            tagTextView = (TextView) cardView.findViewById(R.id.tag_text_view);
+            tagTextView = (TextView) view.findViewById(R.id.tag_text_view);
+
+            cardView = (CardView) view.findViewById(R.id.tag_card_view);
 
             selectedCards = new ArrayList<>();
             selectedIndexes = new ArrayList<>();
 
+            addCardListeners();
+        }
+
+        private void addCardListeners() {
             cardView.setOnClickListener(new View.OnClickListener() {
 
                 @Override

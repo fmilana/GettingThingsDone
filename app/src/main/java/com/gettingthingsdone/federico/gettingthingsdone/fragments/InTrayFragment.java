@@ -46,8 +46,6 @@ public class InTrayFragment extends Fragment {
     public static final int REQUEST_NEW_ITEM = 0;
     public static final int REQUEST_EDIT_ITEM = 1;
 
-    public static final String INTRAY_CLARIFICATION_CHANNEL = "InTrayClarificationChannel";
-
     private FirebaseAuth firebaseAuth;
     private DatabaseReference databaseReference;
 
@@ -60,6 +58,7 @@ public class InTrayFragment extends Fragment {
 
 //        items = new ArrayList<>();
 
+        System.out.println("++++++++++intrayFragmentOnStart+++++++++++++++ MainFragmentActivity.getItems().size() = "+ MainFragmentActivity.getItems().size());
 
         firebaseAuth = MainActivity.firebaseAuth;
         databaseReference = MainActivity.databaseReference;

@@ -58,6 +58,8 @@ public class ReferenceFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         setHasOptionsMenu(true);
 
+        System.out.println("++++++++++referenceFragmentOnStart+++++++++++++++ MainFragmentActivity.getItems().size() = "+ MainFragmentActivity.getItems().size());
+
         View view = inflater.inflate(R.layout.fragment_reference, container, false);
 
         emptyReferenceText = (TextView) view.findViewById(R.id.emtpy_reference_list_text);

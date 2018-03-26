@@ -41,10 +41,10 @@ public class TrashAdapter extends RecyclerView.Adapter<TrashAdapter.ViewHolder> 
     private TrashFragment trashFragment;
     private ArrayList<Item> items;
 
-    private static ArrayList<Integer> selectedIndexes;
-    private static ArrayList<CardView> selectedCards;
+    private ArrayList<Integer> selectedIndexes;
+    private ArrayList<CardView> selectedCards;
 
-    private static boolean selecting;
+    private boolean selecting;
 
     public TrashAdapter(final TrashFragment trashFragment) {
         this.trashFragment = trashFragment;
@@ -163,12 +163,12 @@ public class TrashAdapter extends RecyclerView.Adapter<TrashAdapter.ViewHolder> 
         return selectedIndexes;
     }
 
-    public static void clearSelected() {
+    public void clearSelected() {
         selectedCards.clear();
         selectedIndexes.clear();
     }
 
-    public static void stopSelecting() {
+    public void stopSelecting() {
         selecting = false;
     }
 
@@ -180,6 +180,7 @@ public class TrashAdapter extends RecyclerView.Adapter<TrashAdapter.ViewHolder> 
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
+        private CardView cardView;
         private ConstraintLayout constraintLayout;
         private TextView itemTextView;
         private AppCompatButton restoreButton;
@@ -195,26 +196,80 @@ public class TrashAdapter extends RecyclerView.Adapter<TrashAdapter.ViewHolder> 
 
             constraintLayout = (ConstraintLayout) view.findViewById(R.id.trash_item_constraint_layout);
 
+            cardView = (CardView) view.findViewById(R.id.trash_item_card_view);
+
             itemTextView = (TextView) view.findViewById(R.id.trash_item_text_view);
 
             restoreButton = (AppCompatButton) view.findViewById(R.id.restore_button);
 
 
+            addRestoreItemListener();
+
+            addCardListeners();
+        }
+
+        private void addRestoreItemListener() {
             restoreButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    showRestoreDialog();
+                    if (!selecting) {
+                        showRestoreDialog();
+                    } else {
+                        //deselecting card
+                        if (selectedCards.contains(cardView)) {
+                            cardView.setCardBackgroundColor(view.getResources().getColor(R.color.colorWhite));
+                            restoreButton.setBackgroundColor(view.getResources().getColor(R.color.colorLightGrey));
+
+                            selectedCards.remove(cardView);
+                            selectedIndexes.remove(new Integer(getAdapterPosition()));
+
+                            if (selectedCards.size() == 0) {
+                                selecting = false;
+//                                toolbar.setBackgroundResource(R.color.colorPrimary);
+                                ((MainFragmentActivity)((Fragment)trashFragment).getActivity()).getMenu().findItem(R.id.menu_delete).setVisible(false);
+                            }
+
+                        } else {
+                            //adding another card to the selection
+                            cardView.setCardBackgroundColor(view.getResources().getColor(R.color.colorLightGrey2));
+                            restoreButton.setBackgroundColor(view.getResources().getColor(R.color.colorClarifyButtonSelected));
+
+                            selectedCards.add(cardView);
+                            selectedIndexes.add(getAdapterPosition());
+
+                        }
+                    }
                 }
             });
 
-            addCardListeners(constraintLayout);
+            restoreButton.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+
+                    CardView cardView = (CardView)itemView.findViewById(R.id.trash_item_card_view);
+
+                    cardView.setCardBackgroundColor(view.getResources().getColor(R.color.colorLightGrey2));
+                    restoreButton.setBackgroundColor(view.getResources().getColor(R.color.colorClarifyButtonSelected));
+
+                    selecting = true;
+
+                    selectedCards.add(cardView);
+                    selectedIndexes.add(getAdapterPosition());
+
+//                    toolbar.setBackgroundResource(R.color.colorPrimaryLight);
+
+                    ((MainFragmentActivity) trashFragment.getActivity()).getMenu().findItem(R.id.menu_delete).setVisible(true);
+
+                    return true;
+                }
+            });
         }
 
         private void restoreItemToInTray(Item item) {
-            String editedInTrayItemValue = MainActivity.databaseReference.push().getKey();
+            String editedInTrayItemValue = databaseReference.push().getKey();
 
-            MainActivity.databaseReference.child("users").child(MainActivity.firebaseAuth.getCurrentUser().getUid()).child("intray").child(item.getKey()).setValue(editedInTrayItemValue);
-            MainActivity.databaseReference.child("users").child(MainActivity.firebaseAuth.getCurrentUser().getUid()).child("trash").child(item.getKey()).removeValue();
+            databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("intray").child(item.getKey()).setValue(editedInTrayItemValue);
+            databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("trash").child(item.getKey()).removeValue();
 
             items.remove(item);
 
@@ -227,7 +282,7 @@ public class TrashAdapter extends RecyclerView.Adapter<TrashAdapter.ViewHolder> 
             Toast.makeText(trashFragment.getActivity(), "Item restored to Trash", Toast.LENGTH_SHORT).show();
         }
 
-        private void addCardListeners(ConstraintLayout constraintLayout) {
+        private void addCardListeners() {
             constraintLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -250,8 +305,6 @@ public class TrashAdapter extends RecyclerView.Adapter<TrashAdapter.ViewHolder> 
                         trashFragment.startActivity(intent);
 
                     } else {
-                        CardView cardView = (CardView)itemView.findViewById(R.id.trash_item_card_view);
-
                         //deselecting card
                         if (selectedCards.contains(cardView)) {
                             cardView.setCardBackgroundColor(view.getResources().getColor(R.color.colorWhite));

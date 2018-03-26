@@ -1,49 +1,36 @@
 package com.gettingthingsdone.federico.gettingthingsdone.activities;
 
 import android.app.AlarmManager;
-import android.app.DatePickerDialog;
-import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.PendingIntent;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.AttributeSet;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.DatePicker;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.gettingthingsdone.federico.gettingthingsdone.Item;
-import com.gettingthingsdone.federico.gettingthingsdone.Project;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
-import com.gettingthingsdone.federico.gettingthingsdone.adapters.CalendarAdapter;
-import com.gettingthingsdone.federico.gettingthingsdone.adapters.InTrayAdapter;
-import com.gettingthingsdone.federico.gettingthingsdone.adapters.MaybeLaterAdapter;
-import com.gettingthingsdone.federico.gettingthingsdone.adapters.ProjectsAdapter;
-import com.gettingthingsdone.federico.gettingthingsdone.adapters.ReferenceAdapter;
-import com.gettingthingsdone.federico.gettingthingsdone.adapters.TagsAdapter;
-import com.gettingthingsdone.federico.gettingthingsdone.adapters.TrashAdapter;
-import com.gettingthingsdone.federico.gettingthingsdone.adapters.WaitingForAdapter;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.CalendarFragment;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.InTrayFragment;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.MaybeLaterFragment;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.ProjectsFragment;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.ReferenceFragment;
+import com.gettingthingsdone.federico.gettingthingsdone.fragments.SettingsFragment;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.TagsFragment;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.TrashFragment;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.WaitingForFragment;
-import com.gettingthingsdone.federico.gettingthingsdone.receivers.InTrayNotificationReceiver;
+import com.gettingthingsdone.federico.gettingthingsdone.receivers.CalendarNotificationReceiver;
+import com.gettingthingsdone.federico.gettingthingsdone.receivers.InTrayReminderReceiver;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -53,6 +40,10 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
+
+import static java.lang.Thread.sleep;
 
 /**
  * Created by Federico on 03-Feb-18.
@@ -62,7 +53,13 @@ public class MainFragmentActivity extends AppCompatActivity implements Navigatio
 
     private static ArrayList<Item> items;
 
+    private MenuItem previousItem;
+
+    private Handler handler;
+
     private DrawerLayout drawerLayout;
+
+    private NavigationView navigationView;
 
     private InTrayFragment inTrayFragment;
     private ProjectsFragment projectsFragment;
@@ -72,13 +69,18 @@ public class MainFragmentActivity extends AppCompatActivity implements Navigatio
     private ReferenceFragment referenceFragment;
     private TrashFragment trashFragment;
     private TagsFragment tagsFragment;
+    private SettingsFragment settingsFragment;
 
     private FragmentManager fragmentManager;
+    private FragmentTransaction fragmentTransaction;
 
     private Menu menu;
 
     private FirebaseAuth firebaseAuth;
     private DatabaseReference databaseReference;
+
+    public static final String INTRAY_REMINDERS_CHANNEL = "InTrayRemindersChannel";
+    public static final String CALENDAR_NOTIFICATIONS_CHANNEL = "calendarNotificationsChannel";
 
 
     @Override
@@ -88,7 +90,11 @@ public class MainFragmentActivity extends AppCompatActivity implements Navigatio
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+
+//        System.out.println("+++++++++++++++++++++++++++++++++++++++++++ resetting items!!!");
         items = new ArrayList<>();
+
+        handler = new Handler();
 
         firebaseAuth = MainActivity.firebaseAuth;
         databaseReference = MainActivity.databaseReference;
@@ -107,20 +113,7 @@ public class MainFragmentActivity extends AppCompatActivity implements Navigatio
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
 
-//        ///sets nav header email address to email address///
-//        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("email").addValueEventListener(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(DataSnapshot dataSnapshot) {
-//                ((TextView)drawerLayout.findViewById(R.id.nav_header_email_address)).setText(dataSnapshot.getValue(String.class));
-//            }
-//
-//            @Override
-//            public void onCancelled(DatabaseError databaseError) {
-//
-//            }
-//        });
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
         inTrayFragment = new InTrayFragment();
@@ -131,15 +124,34 @@ public class MainFragmentActivity extends AppCompatActivity implements Navigatio
         referenceFragment = new ReferenceFragment();
         trashFragment = new TrashFragment();
         tagsFragment = new TagsFragment();
+        settingsFragment = new SettingsFragment();
 
         fragmentManager = getFragmentManager();
 
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.replace(R.id.content_main_constraint_layout, inTrayFragment).commit();
 
+        navigationView.getMenu().getItem(0).setCheckable(true);
         navigationView.getMenu().getItem(0).setChecked(true);
 
-        setUpInTrayNotification();
+        setUpInTrayReminders();
+        setUpCalendarNotifications();
+
+        String fragmentToLaunch = getIntent().getStringExtra("fragmentToLaunch");
+
+        if (fragmentToLaunch != null) {
+            if (fragmentToLaunch.equals("calendarFragment")) {
+
+                System.out.println("LAUNCHING CALENDAR");
+
+                navigationView.getMenu().getItem(2).setCheckable(true);
+                navigationView.getMenu().getItem(2).setChecked(true);
+
+                fragmentTransaction.replace(R.id.content_main_constraint_layout, calendarFragment);
+            }
+        } else {
+            System.out.println("INTENT IS NULL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        }
     }
 
     @Override
@@ -159,7 +171,7 @@ public class MainFragmentActivity extends AppCompatActivity implements Navigatio
         this.menu = menu;
 
         ///sets nav header email address to email address///
-        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("email").addValueEventListener(new ValueEventListener() {
+        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("email").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 ((TextView)drawerLayout.findViewById(R.id.nav_header_email_address)).setText(dataSnapshot.getValue(String.class));
@@ -187,6 +199,14 @@ public class MainFragmentActivity extends AppCompatActivity implements Navigatio
             finish();
 
             return true;
+        } else if (id == R.id.menu_settings) {
+            fragmentManager = getFragmentManager();
+
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            fragmentTransaction.replace(R.id.content_main_constraint_layout, settingsFragment).commit();
+
+            navigationView.getMenu().getItem(8).setCheckable(true);
+            navigationView.getMenu().getItem(8).setChecked(true);
         }
 
         return super.onOptionsItemSelected(item);
@@ -194,10 +214,22 @@ public class MainFragmentActivity extends AppCompatActivity implements Navigatio
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
+    public boolean onNavigationItemSelected(final MenuItem item) {
+
+        item.setCheckable(true);
+        item.setChecked(true);
+
+        if (previousItem != null && previousItem != item) {
+            previousItem.setChecked(false);
+        }
+
+        previousItem = item;
+
+//        menuItemSelected = item;
 
         FragmentManager fragmentManager = getFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        final FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
 
         switch (item.getItemId()) {
             case R.id.nav_in_tray:
@@ -224,9 +256,19 @@ public class MainFragmentActivity extends AppCompatActivity implements Navigatio
             case R.id.nav_tags:
                 fragmentTransaction.replace(R.id.content_main_constraint_layout, tagsFragment).commit();
                 break;
+            case R.id.nav_settings:
+                fragmentTransaction.replace(R.id.content_main_constraint_layout, settingsFragment).commit();
+                break;
         }
 
-        drawerLayout.closeDrawer(GravityCompat.START);
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                drawerLayout.closeDrawer(GravityCompat.START);
+            }
+        }, 250);
+
         return true;
     }
 
@@ -248,8 +290,6 @@ public class MainFragmentActivity extends AppCompatActivity implements Navigatio
                 Item newItem = dataSnapshot.getValue(Item.class);
                 newItem.setKey(dataSnapshot.getKey());
 
-                System.out.println("reading ITEM");
-
                 items.add(newItem);
             }
 
@@ -261,6 +301,8 @@ public class MainFragmentActivity extends AppCompatActivity implements Navigatio
                 for (int i = 0; i < items.size(); ++i) {
                     if (items.get(i).getKey().equals(dataSnapshot.getKey())) {
                         items.set(i, editedItem);
+
+
                         break;
                     }
                 }
@@ -291,18 +333,84 @@ public class MainFragmentActivity extends AppCompatActivity implements Navigatio
         });
     }
 
-    private void setUpInTrayNotification() {
-        Calendar calendar = Calendar.getInstance();
+    private void setUpInTrayReminders() {
 
-        calendar.set(Calendar.DAY_OF_WEEK, Calendar.WEDNESDAY);
-        calendar.set(Calendar.HOUR_OF_DAY, 14);
-        calendar.set(Calendar.MINUTE, 30);
-        calendar.set(Calendar.SECOND, 0);
+        final Calendar calendar = Calendar.getInstance();
 
-        Intent intent = new Intent(getApplicationContext(), InTrayNotificationReceiver.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
-        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY * 7, pendingIntent);
+        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("inTrayRemindersTime").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                System.out.println("READING TIME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+
+                String split1[] = ((String)dataSnapshot.getValue()).split(" ", 2);
+                String split2[] = split1[1].split(":", 2);
+
+                calendar.set(Calendar.DAY_OF_WEEK, Integer.parseInt(split1[0]) + 1);
+                calendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(split2[0]));
+                calendar.set(Calendar.MINUTE, Integer.parseInt(split2[1]));
+                calendar.set(Calendar.SECOND, 00);
+
+                long triggerAtMillis;
+
+                if (new Date(calendar.getTimeInMillis()).before(new Date())) {
+                    triggerAtMillis = calendar.getTimeInMillis() + TimeUnit.DAYS.toMillis(7);
+                } else {
+                    triggerAtMillis = calendar.getTimeInMillis();
+                }
+
+                System.out.println("DATE  =================> " + new Date(triggerAtMillis));
+
+                Intent intent = new Intent(getApplicationContext(), InTrayReminderReceiver.class);
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
+
+
+                alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, triggerAtMillis, AlarmManager.INTERVAL_DAY * 7, pendingIntent);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+    }
+
+    private void setUpCalendarNotifications() {
+        final Calendar calendar = Calendar.getInstance();
+
+        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("calendarNotificationsTime").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String split[] = ((String)dataSnapshot.getValue()).split(":", 2);
+
+                calendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(split[0]));
+                calendar.set(Calendar.MINUTE, Integer.parseInt(split[1]));
+                calendar.set(Calendar.SECOND, 00);
+
+                long triggerAtMillis;
+
+                if (new Date(calendar.getTimeInMillis()).before(new Date())) {
+                    triggerAtMillis = calendar.getTimeInMillis() + TimeUnit.DAYS.toMillis(1);
+                } else {
+                    triggerAtMillis = calendar.getTimeInMillis();
+                }
+
+                System.out.println("CALENDAR NOTIFICATION DATE  =================> " + new Date(triggerAtMillis));
+
+                Intent intent = new Intent(getApplicationContext(), CalendarNotificationReceiver.class);
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
+
+
+                alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, triggerAtMillis, AlarmManager.INTERVAL_DAY, pendingIntent);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     public static ArrayList<Item> getItems() {

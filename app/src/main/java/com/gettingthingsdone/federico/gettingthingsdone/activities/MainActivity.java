@@ -56,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText passwordEditText;
     private Button loginButton;
     private Button registerButton;
+    private TextView forgotPasswordTextView;
     private ProgressBar progressBar;
 
     public static DatabaseReference databaseReference;
@@ -71,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
         databaseReference = FirebaseDatabase.getInstance().getReference();
         firebaseAuth = FirebaseAuth.getInstance();
 
+//
         //if user is already logged in
         if (firebaseAuth.getCurrentUser() != null) {
             Intent intent = new Intent(MainActivity.this, MainFragmentActivity.class);
@@ -82,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
         passwordEditText = (EditText) findViewById(R.id.insert_password);
         loginButton = (Button) findViewById(R.id.log_in_button);
         registerButton = (Button) findViewById(R.id.register_button);
+        forgotPasswordTextView = (TextView) findViewById(R.id.forgotten_email_text);
         progressBar = (ProgressBar) findViewById(R.id.log_in_progress_bar);
 
 
@@ -96,6 +99,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
+                MainActivity.this.startActivity(intent);
+            }
+        });
+
+        forgotPasswordTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, ForgotPasswordActivity.class);
                 MainActivity.this.startActivity(intent);
             }
         });
@@ -130,16 +141,15 @@ public class MainActivity extends AppCompatActivity {
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
+                        progressBar.setVisibility(View.INVISIBLE);
+
                         if (task.isSuccessful()) {
                             //user is successfully logged in
-                            progressBar.setVisibility(View.INVISIBLE);
 
                             Intent intent = new Intent(MainActivity.this, MainFragmentActivity.class);
                             MainActivity.this.startActivity(intent);
                             finish();
                         } else {
-                            progressBar.setVisibility(View.INVISIBLE);
-
                             Toast.makeText(MainActivity.this, "Authentication failed",
                                     Toast.LENGTH_SHORT).show();
                         }

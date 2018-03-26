@@ -80,7 +80,7 @@ public class TagActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_new_tag);
+        setContentView(R.layout.activity_tag);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
@@ -453,6 +453,19 @@ public class TagActivity extends AppCompatActivity {
     }
 
     private void selectTagTime() {
+        int initialHour = 12;
+        int initialMinutes = 00;
+
+        String buttonText = timeButton.getText().toString();
+
+        if (!buttonText.equals(getResources().getString(R.string.time))) {
+            String time[] = buttonText.split(":",2);
+
+            initialHour = Integer.parseInt(time[0]);
+            initialMinutes = Integer.parseInt(time[1]);
+        }
+
+
         TimePickerDialog timePickerDialog = new TimePickerDialog(TagActivity.this, new TimePickerDialog.OnTimeSetListener() {
             @Override
             public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
@@ -479,7 +492,7 @@ public class TagActivity extends AppCompatActivity {
                 timeSet = true;
 
             }
-        }, 12, 0, true);
+        }, initialHour, initialMinutes, true);
 
         timePickerDialog.setTitle("Select Time");
         timePickerDialog.show();

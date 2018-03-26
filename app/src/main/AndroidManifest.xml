@@ -27,7 +27,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.RegisterActivity" />
+        <activity android:name=".activities.RegisterActivity"
+            android:windowSoftInputMode="stateVisible"/>
+        <activity android:name=".activities.ForgotPasswordActivity"
+            android:windowSoftInputMode="stateVisible"/>
         <activity
             android:name=".activities.MainFragmentActivity"
             android:theme="@style/AppTheme.NoActionBar" />
@@ -42,7 +45,8 @@
             android:label="@string/title_activity_new_tag"
             android:windowSoftInputMode="adjustPan"></activity>
 
-        <receiver android:name=".receivers.InTrayNotificationReceiver"/>
+        <receiver android:name=".receivers.InTrayReminderReceiver"/>
+        <receiver android:name=".receivers.CalendarNotificationReceiver"/>
     </application>
 
 </manifest>

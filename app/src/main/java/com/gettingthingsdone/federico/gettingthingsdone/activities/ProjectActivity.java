@@ -103,6 +103,8 @@ public class ProjectActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
 
         adapter.notifyDataSetChanged();
+
+        System.out.println("+++++++++++++projectactivity+++++++++++++ MainFragmentActivity.getItems().size() = "+ MainFragmentActivity.getItems().size());
     }
 
     @Override
@@ -211,6 +213,10 @@ public class ProjectActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         finish();
+    }
+
+    public void notifyAdapter() {
+        adapter.notifyDataSetChanged();
     }
 
     public static ArrayList<Item> getProjectItems() {

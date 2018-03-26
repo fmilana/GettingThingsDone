@@ -49,10 +49,10 @@ public class ProjectsAdapter extends RecyclerView.Adapter<ProjectsAdapter.ViewHo
 
     private ArrayList<Project> projects;
 
-    private static ArrayList<Integer> selectedIndexes;
-    private static ArrayList<CardView> selectedCards;
+    private ArrayList<Integer> selectedIndexes;
+    private ArrayList<CardView> selectedCards;
 
-    private static boolean selecting;
+    private boolean selecting;
 
 
 
@@ -166,12 +166,12 @@ public class ProjectsAdapter extends RecyclerView.Adapter<ProjectsAdapter.ViewHo
         return projects.size();
     }
 
-    public static void clearSelected() {
+    public void clearSelected() {
         selectedCards.clear();
         selectedIndexes.clear();
     }
 
-    public static void stopSelecting() {
+    public void stopSelecting() {
         selecting = false;
     }
 
