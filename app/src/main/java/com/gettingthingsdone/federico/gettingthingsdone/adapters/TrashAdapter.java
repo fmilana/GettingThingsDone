@@ -17,7 +17,7 @@ import android.widget.Toast;
 import com.gettingthingsdone.federico.gettingthingsdone.Item;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.ItemActivity;
-import com.gettingthingsdone.federico.gettingthingsdone.activities.MainActivity;
+import com.gettingthingsdone.federico.gettingthingsdone.activities.LogInActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.MainFragmentActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.TrashFragment;
 import com.google.firebase.auth.FirebaseAuth;
@@ -51,8 +51,8 @@ public class TrashAdapter extends RecyclerView.Adapter<TrashAdapter.ViewHolder> 
 
         items = new ArrayList<>();
 
-        firebaseAuth = MainActivity.firebaseAuth;
-        databaseReference = MainActivity.databaseReference;
+        firebaseAuth = LogInActivity.firebaseAuth;
+        databaseReference = LogInActivity.databaseReference;
 
         selectedIndexes = new ArrayList<>();
         selectedCards = new ArrayList<>();
@@ -271,6 +271,8 @@ public class TrashAdapter extends RecyclerView.Adapter<TrashAdapter.ViewHolder> 
             databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("intray").child(item.getKey()).setValue(editedInTrayItemValue);
             databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("trash").child(item.getKey()).removeValue();
 
+            databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(item.getKey()).child("listName").setValue("intray");
+
             items.remove(item);
 
             trashFragment.notifyAdapter();
@@ -279,7 +281,7 @@ public class TrashAdapter extends RecyclerView.Adapter<TrashAdapter.ViewHolder> 
                 trashFragment.getEmptyTrashText().setVisibility(View.VISIBLE);
             }
 
-            Toast.makeText(trashFragment.getActivity(), "Item restored to Trash", Toast.LENGTH_SHORT).show();
+            Toast.makeText(trashFragment.getActivity(), trashFragment.getResources().getString(R.string.item_restored), Toast.LENGTH_SHORT).show();
         }
 
         private void addCardListeners() {

@@ -15,7 +15,7 @@ import com.gettingthingsdone.federico.gettingthingsdone.Clarification;
 import com.gettingthingsdone.federico.gettingthingsdone.Item;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.ItemActivity;
-import com.gettingthingsdone.federico.gettingthingsdone.activities.MainActivity;
+import com.gettingthingsdone.federico.gettingthingsdone.activities.LogInActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.MainFragmentActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.InTrayFragment;
 import com.google.firebase.auth.FirebaseAuth;
@@ -53,8 +53,8 @@ public class InTrayAdapter extends RecyclerView.Adapter<InTrayAdapter.ViewHolder
 
         selecting = false;
 
-        firebaseAuth = MainActivity.firebaseAuth;
-        databaseReference = MainActivity.databaseReference;
+        firebaseAuth = LogInActivity.firebaseAuth;
+        databaseReference = LogInActivity.databaseReference;
 
 //        addMainActivityItemsListener();
 

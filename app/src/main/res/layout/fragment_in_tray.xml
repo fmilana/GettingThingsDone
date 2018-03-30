@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.gettingthingsdone.federico.gettingthingsdone.activities.MainActivity"
+    tools:context="com.gettingthingsdone.federico.gettingthingsdone.activities.LogInActivity"
     android:id="@+id/in_tray_coordinator_layout"
     android:background="@color/colorLighterGrey"
     android:padding="@dimen/item_list_padding">

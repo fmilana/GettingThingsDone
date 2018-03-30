@@ -17,6 +17,8 @@ public class Item {
 
     private boolean notificationsEnabled;
 
+    private String listName;
+
     public Item() {
         this.notificationsEnabled = false;
     }
@@ -25,6 +27,7 @@ public class Item {
         this.text = text;
         this.itemTags = itemTags;
         this.notificationsEnabled = notificationsEnabled;
+        this.listName = "intray";
     }
 
     public String getText() {
@@ -57,6 +60,14 @@ public class Item {
 
     public void setNotificationsEnabled(boolean enabled) {
         notificationsEnabled = enabled;
+    }
+
+    public String getListName() {
+        return listName;
+    }
+
+    public void setListName(String listName) {
+        this.listName = listName;
     }
 
 }

@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.SET_ALARM" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -19,7 +20,7 @@
             />
 
         <activity
-            android:name=".activities.MainActivity"
+            android:name=".activities.LogInActivity"
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -36,7 +37,7 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".activities.ItemActivity"
-            android:parentActivityName=".activities.MainActivity"/>
+            android:parentActivityName=".activities.LogInActivity"/>
         <activity
             android:name=".activities.TagActivity"
             android:label="@string/title_activity_new_tag"></activity>
@@ -47,6 +48,7 @@
 
         <receiver android:name=".receivers.InTrayReminderReceiver"/>
         <receiver android:name=".receivers.CalendarNotificationReceiver"/>
+        <receiver android:name=".receivers.TagsNotificationReceiver" />
     </application>
 
 </manifest>

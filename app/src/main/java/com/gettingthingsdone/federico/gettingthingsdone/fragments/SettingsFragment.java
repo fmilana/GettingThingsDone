@@ -25,11 +25,10 @@ import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.gettingthingsdone.federico.gettingthingsdone.R;
-import com.gettingthingsdone.federico.gettingthingsdone.activities.MainActivity;
+import com.gettingthingsdone.federico.gettingthingsdone.activities.LogInActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
-import com.google.firebase.auth.EmailAuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -70,8 +69,8 @@ public class SettingsFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        firebaseAuth = MainActivity.firebaseAuth;
-        databaseReference = MainActivity.databaseReference;
+        firebaseAuth = LogInActivity.firebaseAuth;
+        databaseReference = LogInActivity.databaseReference;
     }
 
     @Nullable
@@ -238,12 +237,14 @@ public class SettingsFragment extends Fragment {
         databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("calendarNotificationsTime").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                calendarNotificationsTimeButton.setText((String)dataSnapshot.getValue());
+                if (isAdded() && getActivity() != null) {
+                    calendarNotificationsTimeButton.setText((String) dataSnapshot.getValue());
 
-                if (calendarNotificationsSwitch.isChecked()) {
-                    calendarNotificationsTimeButton.setTextColor(getResources().getColor(R.color.colorBlack));
-                } else {
-                    calendarNotificationsTimeButton.setTextColor(getResources().getColor(R.color.grey));
+                    if (calendarNotificationsSwitch.isChecked()) {
+                        calendarNotificationsTimeButton.setTextColor(getResources().getColor(R.color.colorBlack));
+                    } else {
+                        calendarNotificationsTimeButton.setTextColor(getResources().getColor(R.color.grey));
+                    }
                 }
             }
 
@@ -595,10 +596,13 @@ public class SettingsFragment extends Fragment {
         saturdayToggleButton.setChecked(false);
 
         databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("inTrayRemindersTime").setValue("7 12:00");
+        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("calendarNotificationsTime").setValue("08:00");
 
         calendarNotificationsSwitch.setChecked(true);
         inTrayRemindersSwitch.setChecked(true);
 
+        calendarNotificationsTimeButton.setText("08:00");
+        calendarNotificationsTimeButton.setTextColor(getResources().getColor(R.color.colorBlack));
 
         inTrayRemindersTimeButton.setText("12:00");
         inTrayRemindersTimeButton.setTextColor(getResources().getColor(R.color.colorBlack));
@@ -714,10 +718,10 @@ public class SettingsFragment extends Fragment {
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
 
-                    Intent intent = new Intent(getActivity(), MainActivity.class);
+                    Intent intent = new Intent(getActivity(), LogInActivity.class);
                     startActivity(intent);
 
-                    MainActivity.firebaseAuth = null;
+                    LogInActivity.firebaseAuth = null;
 
                     getActivity().finish();
 

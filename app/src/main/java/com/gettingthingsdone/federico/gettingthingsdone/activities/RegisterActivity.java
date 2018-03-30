@@ -22,11 +22,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -56,8 +52,8 @@ public class RegisterActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
-        firebaseAuth = MainActivity.firebaseAuth;
-        databaseReference = MainActivity.databaseReference;
+        firebaseAuth = LogInActivity.firebaseAuth;
+        databaseReference = LogInActivity.databaseReference;
 
         emailEditText = (EditText) findViewById(R.id.register_email_address);
         passwordEditText = (EditText) findViewById(R.id.register_password);

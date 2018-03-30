@@ -1,56 +1,30 @@
 package com.gettingthingsdone.federico.gettingthingsdone.activities;
 
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.ActionBar;
 import android.text.TextUtils;
 import android.view.View;
-import android.support.design.widget.NavigationView;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.gettingthingsdone.federico.gettingthingsdone.Item;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
-import com.gettingthingsdone.federico.gettingthingsdone.fragments.CalendarFragment;
-import com.gettingthingsdone.federico.gettingthingsdone.fragments.InTrayFragment;
-import com.gettingthingsdone.federico.gettingthingsdone.fragments.MaybeLaterFragment;
-import com.gettingthingsdone.federico.gettingthingsdone.fragments.ProjectsFragment;
-import com.gettingthingsdone.federico.gettingthingsdone.fragments.ReferenceFragment;
-import com.gettingthingsdone.federico.gettingthingsdone.fragments.TrashFragment;
-import com.gettingthingsdone.federico.gettingthingsdone.fragments.WaitingForFragment;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
-import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MainActivity extends AppCompatActivity {
+public class LogInActivity extends AppCompatActivity {
 
     private EditText emailEditText;
     private EditText passwordEditText;
@@ -75,8 +49,8 @@ public class MainActivity extends AppCompatActivity {
 //
         //if user is already logged in
         if (firebaseAuth.getCurrentUser() != null) {
-            Intent intent = new Intent(MainActivity.this, MainFragmentActivity.class);
-            MainActivity.this.startActivity(intent);
+            Intent intent = new Intent(LogInActivity.this, MainFragmentActivity.class);
+            LogInActivity.this.startActivity(intent);
             finish();
         }
 
@@ -98,16 +72,16 @@ public class MainActivity extends AppCompatActivity {
         registerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
-                MainActivity.this.startActivity(intent);
+                Intent intent = new Intent(LogInActivity.this, RegisterActivity.class);
+                LogInActivity.this.startActivity(intent);
             }
         });
 
         forgotPasswordTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, ForgotPasswordActivity.class);
-                MainActivity.this.startActivity(intent);
+                Intent intent = new Intent(LogInActivity.this, ForgotPasswordActivity.class);
+                LogInActivity.this.startActivity(intent);
             }
         });
 
@@ -117,20 +91,20 @@ public class MainActivity extends AppCompatActivity {
 
         if (TextUtils.isEmpty(email)) {
             //email is empty
-            Toast.makeText(MainActivity.this, "Please insert your email address",
+            Toast.makeText(LogInActivity.this, "Please insert your email address",
                     Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (!isEmailValid(email)) {
-            Toast.makeText(MainActivity.this, "Please enter a valid email address",
+            Toast.makeText(LogInActivity.this, "Please enter a valid email address",
                     Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (TextUtils.isEmpty(password)) {
             //password is empty
-            Toast.makeText(MainActivity.this, "Please insert your password",
+            Toast.makeText(LogInActivity.this, "Please insert your password",
                     Toast.LENGTH_SHORT).show();
             return;
         }
@@ -146,11 +120,11 @@ public class MainActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             //user is successfully logged in
 
-                            Intent intent = new Intent(MainActivity.this, MainFragmentActivity.class);
-                            MainActivity.this.startActivity(intent);
+                            Intent intent = new Intent(LogInActivity.this, MainFragmentActivity.class);
+                            LogInActivity.this.startActivity(intent);
                             finish();
                         } else {
-                            Toast.makeText(MainActivity.this, "Authentication failed",
+                            Toast.makeText(LogInActivity.this, "Authentication failed",
                                     Toast.LENGTH_SHORT).show();
                         }
                     }

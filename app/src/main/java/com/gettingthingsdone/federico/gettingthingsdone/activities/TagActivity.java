@@ -22,6 +22,7 @@ import android.widget.ToggleButton;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.LocationCallback;
+import com.gettingthingsdone.federico.gettingthingsdone.Item;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
 import com.gettingthingsdone.federico.gettingthingsdone.Tag;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.TagsFragment;
@@ -37,10 +38,13 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class TagActivity extends AppCompatActivity {
 
@@ -108,8 +112,8 @@ public class TagActivity extends AppCompatActivity {
         timeSet = false;
         locationSet = false;
 
-        firebaseAuth = MainActivity.firebaseAuth;
-        databaseReference = MainActivity.databaseReference;
+        firebaseAuth = LogInActivity.firebaseAuth;
+        databaseReference = LogInActivity.databaseReference;
 
         geoFire = new GeoFire(databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("taglocations"));
 
@@ -371,7 +375,7 @@ public class TagActivity extends AppCompatActivity {
 
                         String locationKey = getIntent().getStringExtra("tag location key");
 
-                        if (locationButton.getText().length() != 0) {
+                        if (!locationButton.getText().toString().equals(getResources().getString(R.string.location))) {
 
                             if (place != null) {
 
@@ -427,9 +431,10 @@ public class TagActivity extends AppCompatActivity {
                                     }
                                 });
                             }
-                        }
+                        } else {
 
-                        else {
+                            System.out.println("OLDLOCATIONKEY = " + oldLocationKey);
+
                             if (oldLocationKey != null) {
                                 geoFire.removeLocation(oldLocationKey, new GeoFire.CompletionListener() {
                                     @Override
@@ -441,8 +446,34 @@ public class TagActivity extends AppCompatActivity {
                         }
 
 
-                        String tagKey = getIntent().getStringExtra("tag key");
+                        final String tagKey = getIntent().getStringExtra("tag key");
                         databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("tags").child(tagKey).setValue(editedTag);
+
+
+                        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                for (DataSnapshot childDataSnapshot : dataSnapshot.getChildren()) {
+                                    Item item = childDataSnapshot.getValue(Item.class);
+
+                                    item.setKey(childDataSnapshot.getKey());
+
+                                    for (DataSnapshot grandChildDataSnapshot : childDataSnapshot.child("itemTags").getChildren()) {
+
+                                        System.out.println("COMPARING GRANDCHILDDATASNAPSHOT.GETKEY() = " + grandChildDataSnapshot.getKey() + " WITH TAGKEY = " + tagKey);
+
+                                        if (grandChildDataSnapshot.getKey().equals(tagKey)) {
+                                            grandChildDataSnapshot.getRef().setValue(editedTag.getText());
+                                        }
+                                    }
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
                     }
                 }
 

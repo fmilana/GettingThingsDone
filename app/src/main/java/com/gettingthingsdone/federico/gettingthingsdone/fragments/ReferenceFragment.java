@@ -18,7 +18,7 @@ import android.widget.Toast;
 
 import com.gettingthingsdone.federico.gettingthingsdone.Item;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
-import com.gettingthingsdone.federico.gettingthingsdone.activities.MainActivity;
+import com.gettingthingsdone.federico.gettingthingsdone.activities.LogInActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.MainFragmentActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.adapters.ReferenceAdapter;
 import com.google.firebase.auth.FirebaseAuth;
@@ -49,8 +49,8 @@ public class ReferenceFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        firebaseAuth = MainActivity.firebaseAuth;
-        databaseReference = MainActivity.databaseReference;
+        firebaseAuth = LogInActivity.firebaseAuth;
+        databaseReference = LogInActivity.databaseReference;
     }
 
     @Nullable

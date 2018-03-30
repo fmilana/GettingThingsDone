@@ -1,7 +1,6 @@
 package com.gettingthingsdone.federico.gettingthingsdone.activities;
 
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -21,7 +20,6 @@ import com.google.firebase.auth.ProviderQueryResult;
 import com.google.firebase.database.DatabaseReference;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by feder on 22-Mar-18.
@@ -45,8 +43,8 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
-        firebaseAuth = MainActivity.firebaseAuth;
-        databaseReference = MainActivity.databaseReference;
+        firebaseAuth = LogInActivity.firebaseAuth;
+        databaseReference = LogInActivity.databaseReference;
 
         emailEditText = (EditText) findViewById(R.id.password_reset_email_address_edit_text);
         sendEmailButton = (Button) findViewById(R.id.password_reset_button);

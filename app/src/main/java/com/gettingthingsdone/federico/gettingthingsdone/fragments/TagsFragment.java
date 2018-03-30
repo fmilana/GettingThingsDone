@@ -18,7 +18,7 @@ import android.widget.TextView;
 import com.gettingthingsdone.federico.gettingthingsdone.Item;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
 import com.gettingthingsdone.federico.gettingthingsdone.Tag;
-import com.gettingthingsdone.federico.gettingthingsdone.activities.MainActivity;
+import com.gettingthingsdone.federico.gettingthingsdone.activities.LogInActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.MainFragmentActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.TagActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.adapters.TagsAdapter;
@@ -61,8 +61,8 @@ public class TagsFragment extends Fragment {
 
         setHasOptionsMenu(true);
 
-        firebaseAuth = MainActivity.firebaseAuth;
-        databaseReference = MainActivity.databaseReference;
+        firebaseAuth = LogInActivity.firebaseAuth;
+        databaseReference = LogInActivity.databaseReference;
 
         youHaveNoTagsTextView = view.findViewById(R.id.empty_tags_textview);
 

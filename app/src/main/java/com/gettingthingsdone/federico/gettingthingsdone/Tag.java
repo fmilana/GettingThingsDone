@@ -29,6 +29,10 @@ public class Tag {
         return text;
     }
 
+    public void setText(String text) {
+        this.text = text;
+    }
+
     public void setKey(String key) {
         this.key = key;
     }

@@ -2,6 +2,7 @@ package com.gettingthingsdone.federico.gettingthingsdone.fragments;
 
 
 import android.app.Fragment;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
@@ -16,14 +17,17 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.gettingthingsdone.federico.gettingthingsdone.Item;
 import com.gettingthingsdone.federico.gettingthingsdone.Project;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
-import com.gettingthingsdone.federico.gettingthingsdone.activities.MainActivity;
+import com.gettingthingsdone.federico.gettingthingsdone.activities.LogInActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.MainFragmentActivity;
+import com.gettingthingsdone.federico.gettingthingsdone.activities.ProjectActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.adapters.ProjectsAdapter;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
@@ -44,6 +48,8 @@ public class ProjectsFragment extends Fragment {
     private RecyclerView recyclerView;
     private RecyclerView.LayoutManager layoutManager;
 
+    private String projectKeyToShow;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,8 +58,8 @@ public class ProjectsFragment extends Fragment {
 
         System.out.println("++++++++++projectsfragmentOnStart+++++++++++++++ MainFragmentActivity.getItems().size() = "+ MainFragmentActivity.getItems().size());
 
-        firebaseAuth = MainActivity.firebaseAuth;
-        databaseReference = MainActivity.databaseReference;
+        firebaseAuth = LogInActivity.firebaseAuth;
+        databaseReference = LogInActivity.databaseReference;
     }
 
     @Nullable
@@ -82,6 +88,41 @@ public class ProjectsFragment extends Fragment {
 
         if (projectsAdapter.getProjects().size() > 0) {
             emptyProjectsText.setVisibility(View.GONE);
+        }
+
+        if (projectKeyToShow != null) {
+
+            databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("projects").addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    for (DataSnapshot childDataSnapshot : dataSnapshot.getChildren()) {
+                        if (childDataSnapshot.getKey().equals(projectKeyToShow)) {
+                            Project projectToOpen = childDataSnapshot.getValue(Project.class);
+
+                            if (projectKeyToShow == null) {
+                                System.out.println("PROJECTKEYTOSHOW IS NULL BOYS");
+                            }
+
+                            Intent intent = new Intent(getActivity(), ProjectActivity.class);
+
+                            intent.putExtra("project title", projectToOpen.getTitle());
+                            intent.putExtra("project description", projectToOpen.getDescription());
+                            intent.putExtra("project key", childDataSnapshot.getKey());
+                            intent.putExtra("project items", projectToOpen.getProjectItems());
+
+                            projectKeyToShow = null;
+
+                            startActivity(intent);
+                        }
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+
         }
 
         super.onViewCreated(view, savedInstanceState);
@@ -145,4 +186,8 @@ public class ProjectsFragment extends Fragment {
     }
 
     public ProgressBar getProgressBar() { return progressBar;}
+
+    public void setProjectToShow(String projectKeyToShow) {
+        this.projectKeyToShow = projectKeyToShow;
+    }
 }

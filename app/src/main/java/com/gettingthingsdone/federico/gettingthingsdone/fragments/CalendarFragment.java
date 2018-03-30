@@ -1,9 +1,7 @@
 package com.gettingthingsdone.federico.gettingthingsdone.fragments;
 
 import android.app.Fragment;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -13,17 +11,15 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CalendarView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.gettingthingsdone.federico.gettingthingsdone.Item;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
-import com.gettingthingsdone.federico.gettingthingsdone.activities.MainActivity;
+import com.gettingthingsdone.federico.gettingthingsdone.activities.LogInActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.MainFragmentActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.adapters.CalendarAdapter;
-import com.gettingthingsdone.federico.gettingthingsdone.adapters.WaitingForAdapter;
 import com.github.sundeepk.compactcalendarview.CompactCalendarView;
 import com.github.sundeepk.compactcalendarview.domain.Event;
 import com.google.firebase.auth.FirebaseAuth;
@@ -37,7 +33,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 
 /**
  * Created by Federico on 07-Nov-17.
@@ -63,9 +58,12 @@ public class CalendarFragment extends Fragment {
 
     private String selectedDate;
 
+    private String dateToShow;
+
 //    private HashMap<String, ArrayList<Item>> calendarMap;
 
     public final static int REQUEST_EDIT_CALENDAR_ITEM = 8;
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -75,10 +73,11 @@ public class CalendarFragment extends Fragment {
 
         this.calendarFragment = this;
 
-        firebaseAuth = MainActivity.firebaseAuth;
-        databaseReference = MainActivity.databaseReference;
+        firebaseAuth = LogInActivity.firebaseAuth;
+        databaseReference = LogInActivity.databaseReference;
 
 //        calendarMap = new HashMap<>();
+
     }
 
     @Nullable
@@ -116,7 +115,21 @@ public class CalendarFragment extends Fragment {
         layoutManager = new GridLayoutManager(this.getActivity(), 2);
         itemRecyclerView.setLayoutManager(layoutManager);
 
-        calendarAdapter = new CalendarAdapter(this, selectedDate);
+
+        if (dateToShow != null) {
+            try {
+                Date date = new SimpleDateFormat("ddMMyyyy").parse(dateToShow);
+                calendarAdapter = new CalendarAdapter(this, dateToShow);
+                calendarView.setCurrentDate(date);
+
+                dateToShow = null;
+
+            } catch (ParseException e) {
+                calendarAdapter = new CalendarAdapter(this, selectedDate);
+            }
+        } else {
+            calendarAdapter = new CalendarAdapter(this, selectedDate);
+        }
 
         itemRecyclerView.setAdapter(calendarAdapter);
 
@@ -153,6 +166,11 @@ public class CalendarFragment extends Fragment {
         if (calendarAdapter.getItems().size() > 0) {
             emptyCalendarItemsText.setVisibility(View.GONE);
         }
+
+
+
+
+
     }
 
     @Override
@@ -297,5 +315,9 @@ public class CalendarFragment extends Fragment {
 
     public void addEventToCalendarDay(Date date) {
         calendarView.addEvent(new Event(getResources().getColor(R.color.colorAccent), date.getTime()));
+    }
+
+    public void setDateToShow(String dateToShow) {
+        this.dateToShow = dateToShow;
     }
 }

@@ -26,7 +26,7 @@ import com.gettingthingsdone.federico.gettingthingsdone.Item;
 import com.gettingthingsdone.federico.gettingthingsdone.Project;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.ItemActivity;
-import com.gettingthingsdone.federico.gettingthingsdone.activities.MainActivity;
+import com.gettingthingsdone.federico.gettingthingsdone.activities.LogInActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.MainFragmentActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.WaitingForFragment;
 import com.google.firebase.auth.FirebaseAuth;
@@ -75,8 +75,8 @@ public class WaitingForAdapter extends RecyclerView.Adapter<WaitingForAdapter.Vi
 
         projects = new ArrayList<>();
 
-        firebaseAuth = MainActivity.firebaseAuth;
-        databaseReference = MainActivity.databaseReference;
+        firebaseAuth = LogInActivity.firebaseAuth;
+        databaseReference = LogInActivity.databaseReference;
 
         selectedIndexes = new ArrayList<>();
         selectedCards = new ArrayList<>();
@@ -493,6 +493,8 @@ public class WaitingForAdapter extends RecyclerView.Adapter<WaitingForAdapter.Vi
             databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child(list).child(movingItem.getKey()).setValue(editedInTrayItemValue);
             databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("waitingfor").child(movingItem.getKey()).removeValue();
 
+            databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(movingItem.getKey()).child("listName").setValue(list);
+
             items.remove(movingItem);
 
             waitingForFragment.notifyAdapter();
@@ -503,13 +505,13 @@ public class WaitingForAdapter extends RecyclerView.Adapter<WaitingForAdapter.Vi
 
             switch (list) {
                 case "maybelater":
-                    Toast.makeText(waitingForFragment.getActivity(), waitingForFragment.getActivity().getResources().getString(R.string.maybe_later), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(waitingForFragment.getActivity(), "Item moved to " + waitingForFragment.getActivity().getResources().getString(R.string.maybe_later), Toast.LENGTH_SHORT).show();
                     break;
                 case "reference":
-                    Toast.makeText(waitingForFragment.getActivity(), waitingForFragment.getActivity().getResources().getString(R.string.reference), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(waitingForFragment.getActivity(), "Item moved to " + waitingForFragment.getActivity().getResources().getString(R.string.reference), Toast.LENGTH_SHORT).show();
                     break;
                 case "trash":
-                    Toast.makeText(waitingForFragment.getActivity(), waitingForFragment.getActivity().getResources().getString(R.string.trash), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(waitingForFragment.getActivity(), "Item moved to " + waitingForFragment.getActivity().getResources().getString(R.string.trash), Toast.LENGTH_SHORT).show();
                     break;
             }
         }
@@ -562,12 +564,14 @@ public class WaitingForAdapter extends RecyclerView.Adapter<WaitingForAdapter.Vi
                     if (moveIntoProjectPosition != projectTitles.length-1) {
                         Project project = projects.get(moveIntoProjectPosition);
 
-                        String editedInTrayItemValue = MainActivity.databaseReference.push().getKey();
+                        String editedInTrayItemValue = LogInActivity.databaseReference.push().getKey();
 
-                        MainActivity.databaseReference.child("users").child(MainActivity.firebaseAuth.getCurrentUser().getUid()).child("waitingfor").child(movingItem.getKey()).removeValue();
-                        MainActivity.databaseReference.child("users").child(MainActivity.firebaseAuth.getCurrentUser().getUid())
+                        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("waitingfor").child(movingItem.getKey()).removeValue();
+                        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid())
                                 .child("projects").child(project.getKey()).child("projectItems")
                                 .child(movingItem.getKey()).setValue(editedInTrayItemValue);
+
+                        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(movingItem.getKey()).child("listName").setValue("projects " + project.getKey());
 
                         items.remove(movingItem);
 
@@ -637,12 +641,21 @@ public class WaitingForAdapter extends RecyclerView.Adapter<WaitingForAdapter.Vi
                     String projectDescription = projectDescriptionEditText.getText().toString().trim();
                     HashMap<String, String> projectItems = new HashMap<>();
 
-                    projectItems.put(movingItem.getKey(), MainActivity.databaseReference.push().getKey());
+                    projectItems.put(movingItem.getKey(),databaseReference.push().getKey());
 
                     Project newProject = new Project(projectTitle, projectDescription, projectItems);
 
-                    MainActivity.databaseReference.child("users").child(MainActivity.firebaseAuth.getCurrentUser().getUid()).child("projects").push().setValue(newProject);
-                    MainActivity.databaseReference.child("users").child(MainActivity.firebaseAuth.getCurrentUser().getUid()).child("waitingfor").child(movingItem.getKey()).removeValue();
+                    databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("projects").push().setValue(newProject, new DatabaseReference.CompletionListener() {
+                        @Override
+                        public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                            System.out.println("CREATING NEW PROJECT AND GIVING PROJECTKEY " + databaseReference.getKey() + " TO ITEM");
+
+                            LogInActivity.databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(movingItem.getKey()).child("listName").setValue("projects " + databaseReference.getKey());
+                        }
+                    });
+                    databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("waitingfor").child(movingItem.getKey()).removeValue();
+
+//                    databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(movingItem.getKey()).child("listName").setValue("projects " + newProject.getKey());
 
                     items.remove(movingItem);
 
@@ -755,6 +768,8 @@ public class WaitingForAdapter extends RecyclerView.Adapter<WaitingForAdapter.Vi
                     databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("calendar").
                             child(date).child(movingItem.getKey()).setValue(itemValue);
                     databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("waitingfor").child(movingItem.getKey()).removeValue();
+
+                    databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(movingItem.getKey()).child("listName").setValue("calendar " + date);
 
                     items.remove(movingItem);
 

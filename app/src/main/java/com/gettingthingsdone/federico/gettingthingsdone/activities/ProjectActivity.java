@@ -4,37 +4,23 @@ package com.gettingthingsdone.federico.gettingthingsdone.activities;
  * Created by feder on 09-Mar-18.
  */
 
-import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.InputType;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.gettingthingsdone.federico.gettingthingsdone.Project;
-import com.gettingthingsdone.federico.gettingthingsdone.Tag;
 import com.gettingthingsdone.federico.gettingthingsdone.Item;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
-import com.gettingthingsdone.federico.gettingthingsdone.adapters.ItemTagsAdapter;
 import com.gettingthingsdone.federico.gettingthingsdone.adapters.ProjectItemsAdapter;
-import com.gettingthingsdone.federico.gettingthingsdone.fragments.InTrayFragment;
-import com.gettingthingsdone.federico.gettingthingsdone.fragments.MaybeLaterFragment;
-import com.gettingthingsdone.federico.gettingthingsdone.fragments.ReferenceFragment;
-import com.gettingthingsdone.federico.gettingthingsdone.fragments.TagsFragment;
-import com.gettingthingsdone.federico.gettingthingsdone.fragments.TrashFragment;
-import com.gettingthingsdone.federico.gettingthingsdone.fragments.WaitingForFragment;
-import com.google.android.flexbox.FlexDirection;
-import com.google.android.flexbox.FlexboxLayoutManager;
-import com.google.android.flexbox.JustifyContent;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 
@@ -76,8 +62,8 @@ public class ProjectActivity extends AppCompatActivity {
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        firebaseAuth = MainActivity.firebaseAuth;
-        databaseReference = MainActivity.databaseReference;
+        firebaseAuth = LogInActivity.firebaseAuth;
+        databaseReference = LogInActivity.databaseReference;
 
         projectTitleEditText = (EditText) findViewById(R.id.project_title_edit_text);
         projectDescriptionEditText = (EditText) findViewById(R.id.project_description_edit_text);

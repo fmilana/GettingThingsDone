@@ -1,7 +1,6 @@
 package com.gettingthingsdone.federico.gettingthingsdone.adapters;
 
 import android.app.AlertDialog;
-import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -26,7 +25,7 @@ import com.gettingthingsdone.federico.gettingthingsdone.Item;
 import com.gettingthingsdone.federico.gettingthingsdone.Project;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.ItemActivity;
-import com.gettingthingsdone.federico.gettingthingsdone.activities.MainActivity;
+import com.gettingthingsdone.federico.gettingthingsdone.activities.LogInActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.MainFragmentActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.ProjectActivity;
 import com.google.firebase.auth.FirebaseAuth;
@@ -79,8 +78,15 @@ public class ProjectItemsAdapter extends RecyclerView.Adapter<ProjectItemsAdapte
 
         projects = new ArrayList<Project>();
 
-        firebaseAuth = MainActivity.firebaseAuth;
-        databaseReference = MainActivity.databaseReference;
+        firebaseAuth = LogInActivity.firebaseAuth;
+        databaseReference = LogInActivity.databaseReference;
+
+        if (firebaseAuth.getCurrentUser().getUid() == null) {
+            System.out.println("[[[[[[[[[[[[[[[[[[[[[[[[[0]]]]]]]]]]]]]]]]]]]]]]]]]");
+        }
+        if (projectKey == null) {
+            System.out.println("[[[[[[[[[[[[[[[[[[[[[[[[[1]]]]]]]]]]]]]]]]]]]]]]]]]");
+        }
 
         databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("projects").child(projectKey).child("projectItems").addChildEventListener(new ChildEventListener() {
             @Override
@@ -512,6 +518,8 @@ public class ProjectItemsAdapter extends RecyclerView.Adapter<ProjectItemsAdapte
                                 .child("projects").child(project.getKey()).child("projectItems")
                                 .child(movingItem.getKey()).setValue(editedInTrayItemValue);
 
+                        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(movingItem.getKey()).child("listName").setValue("projects " + project.getKey());
+
                         projectItems.remove(movingItem);
 
                         projectActivity.notifyAdapter();
@@ -584,8 +592,17 @@ public class ProjectItemsAdapter extends RecyclerView.Adapter<ProjectItemsAdapte
 
                     Project newProject = new Project(projectTitle, projectDescription, projectItems);
 
-                    databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("projects").push().setValue(newProject);
+                    databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("projects").push().setValue(newProject, new DatabaseReference.CompletionListener() {
+                        @Override
+                        public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                            System.out.println("CREATING NEW PROJECT AND GIVING PROJECTKEY " + databaseReference.getKey() + " TO ITEM");
+
+                            LogInActivity.databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(movingItem.getKey()).child("listName").setValue("projects " + databaseReference.getKey());
+                        }
+                    });
                     databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("projects").child(projectKey).child("projectItems").child(movingItem.getKey()).removeValue();
+
+//                    databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(movingItem.getKey()).child("listName").setValue("projects " + newProject.getKey());
 
                     projectItems.remove(movingItem);
 
@@ -698,6 +715,8 @@ public class ProjectItemsAdapter extends RecyclerView.Adapter<ProjectItemsAdapte
                     databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("calendar").child(date).child(movingItem.getKey()).setValue(itemValue);
                     databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("projects").child(projectKey).child("projectItems").child(movingItem.getKey()).removeValue();
 
+                    databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(movingItem.getKey()).child("listName").setValue("calendar " + date);
+
                     projectItems.remove(movingItem);
 
                     projectActivity.notifyAdapter();
@@ -721,6 +740,8 @@ public class ProjectItemsAdapter extends RecyclerView.Adapter<ProjectItemsAdapte
             databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child(list).child(movingItem.getKey()).setValue(editedInTrayItemValue);
             databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("projects").child(projectKey).child("projectItems").child(movingItem.getKey()).removeValue();
 
+            databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(movingItem.getKey()).child("listName").setValue(list);
+
             projectItems.remove(movingItem);
 
             projectActivity.notifyAdapter();
@@ -732,16 +753,16 @@ public class ProjectItemsAdapter extends RecyclerView.Adapter<ProjectItemsAdapte
 
             switch (list) {
                 case "waitingfor":
-                    Toast.makeText(projectActivity, projectActivity.getResources().getString(R.string.waiting_for), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(projectActivity, "Item moved to " + projectActivity.getResources().getString(R.string.waiting_for), Toast.LENGTH_SHORT).show();
                     break;
                 case "maybelater":
-                    Toast.makeText(projectActivity, projectActivity.getResources().getString(R.string.maybe_later), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(projectActivity, "Item moved to " + projectActivity.getResources().getString(R.string.maybe_later), Toast.LENGTH_SHORT).show();
                     break;
                 case "reference":
-                    Toast.makeText(projectActivity, projectActivity.getResources().getString(R.string.reference), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(projectActivity, "Item moved to " + projectActivity.getResources().getString(R.string.reference), Toast.LENGTH_SHORT).show();
                     break;
                 case "trash":
-                    Toast.makeText(projectActivity, projectActivity.getResources().getString(R.string.trash), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(projectActivity, "Item moved to " + projectActivity.getResources().getString(R.string.trash), Toast.LENGTH_SHORT).show();
                     break;
             }
         }

@@ -11,7 +11,7 @@ import android.support.v4.app.NotificationCompat;
 
 import com.gettingthingsdone.federico.gettingthingsdone.Item;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
-import com.gettingthingsdone.federico.gettingthingsdone.activities.MainActivity;
+import com.gettingthingsdone.federico.gettingthingsdone.activities.LogInActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.MainFragmentActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -29,11 +29,12 @@ import java.util.Date;
  */
 
 public class CalendarNotificationReceiver extends BroadcastReceiver {
+
+    final DatabaseReference databaseReference = LogInActivity.databaseReference;
+    final FirebaseAuth firebaseAuth = LogInActivity.firebaseAuth;
+
     @Override
     public void onReceive(final Context context, Intent intent) {
-
-        final DatabaseReference databaseReference = MainActivity.databaseReference;
-        final FirebaseAuth firebaseAuth = MainActivity.firebaseAuth;
 
         System.out.println("RECEIVING CALENDAR NOTIFICATION!");
 
@@ -56,64 +57,70 @@ public class CalendarNotificationReceiver extends BroadcastReceiver {
                             @Override
                             public void onDataChange(DataSnapshot dataSnapshot) {
 
+                                final long numberOfItemsToday = dataSnapshot.getChildrenCount();
 
-                                System.out.println("DATASNAPSHOT.GETCHILDRENCOUNT() = " + dataSnapshot.getChildrenCount());
+                                if (numberOfItemsToday > 0) {
 
-                                final NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                                    System.out.println("DATASNAPSHOT.GETVALUE() = " + dataSnapshot.getValue());
 
-                                Intent notificationIntent = new Intent(context, MainFragmentActivity.class);
-//                                notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                notificationIntent.putExtra("fragmentToLaunch", "calendarFragment");
+                                    System.out.println("DATASNAPSHOT.GETCHILDRENCOUNT() = " + dataSnapshot.getChildrenCount());
 
-                                final PendingIntent pendingIntent = PendingIntent.getActivity(context, 1, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                                    final NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                    NotificationChannel calendarNotificationChannel = new NotificationChannel(MainFragmentActivity.CALENDAR_NOTIFICATIONS_CHANNEL,
-                                            context.getResources().getString(R.string.calendar_notification_channel_name), NotificationManager.IMPORTANCE_DEFAULT);
-                                    calendarNotificationChannel.setLightColor(context.getColor(R.color.colorAccent));
+                                    Intent notificationIntent = new Intent(context, MainFragmentActivity.class);
+                                    //                                notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                    notificationIntent.putExtra("fragmentToLaunch", "calendar");
 
-                                    notificationManager.createNotificationChannel(calendarNotificationChannel);
+                                    final PendingIntent pendingIntent = PendingIntent.getActivity(context, 1, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-                                }
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                        NotificationChannel calendarNotificationChannel = new NotificationChannel(MainFragmentActivity.CALENDAR_NOTIFICATIONS_CHANNEL,
+                                                context.getResources().getString(R.string.calendar_notification_channel_name), NotificationManager.IMPORTANCE_DEFAULT);
+                                        calendarNotificationChannel.setLightColor(context.getColor(R.color.colorAccent));
 
-                                final ArrayList<String> todaysItemsTexts = new ArrayList<>();
+                                        notificationManager.createNotificationChannel(calendarNotificationChannel);
+
+                                    }
+
+                                    final ArrayList<String> todaysItemsTexts = new ArrayList<>();
 
 
-                                /////finds names of items due today/////
-                                for (final DataSnapshot childDataSnapshot : dataSnapshot.getChildren()) {
-                                    databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(childDataSnapshot.getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
-                                        @Override
-                                        public void onDataChange(DataSnapshot dataSnapshot) {
-                                            Item item = dataSnapshot.getValue(Item.class);
+                                    /////finds names of items due today/////
+                                    for (final DataSnapshot childDataSnapshot : dataSnapshot.getChildren()) {
+                                        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(childDataSnapshot.getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                                Item item = dataSnapshot.getValue(Item.class);
 
-                                            todaysItemsTexts.add(item.getText());
+                                                todaysItemsTexts.add(item.getText());
 
-                                            System.out.println("========================================> ADDING " + item.getText() + " TO todaysItemsTexts");
+                                                System.out.println("========================================> ADDING " + item.getText() + " TO todaysItemsTexts");
 
-                                            String concatenatedItemTexts = "";
+                                                String concatenatedItemTexts = "";
 
-                                            for (int i = 0; i < todaysItemsTexts.size(); ++i) {
-                                                if (concatenatedItemTexts.length() > 0) {
-                                                    concatenatedItemTexts += ", ";
+                                                for (int i = 0; i < todaysItemsTexts.size(); ++i) {
+                                                    if (concatenatedItemTexts.length() > 0) {
+                                                        concatenatedItemTexts += ", ";
+                                                    }
+
+                                                    concatenatedItemTexts += todaysItemsTexts.get(i);
                                                 }
 
-                                                concatenatedItemTexts += todaysItemsTexts.get(i);
+                                                NotificationCompat.Builder builder = new NotificationCompat.Builder(context, MainFragmentActivity.CALENDAR_NOTIFICATIONS_CHANNEL).setContentIntent(pendingIntent)
+                                                        .setSmallIcon(R.drawable.ic_notification_icon)
+                                                        .setContentTitle("You have " + numberOfItemsToday + " Items due today")
+                                                        .setContentText(concatenatedItemTexts)
+                                                        .setAutoCancel(true);
+
+                                                notificationManager.notify(0, builder.build());
                                             }
 
-                                            NotificationCompat.Builder builder = new NotificationCompat.Builder(context, MainFragmentActivity.CALENDAR_NOTIFICATIONS_CHANNEL).setContentIntent(pendingIntent)
-                                                    .setSmallIcon(R.drawable.ic_notification_icon)
-                                                    .setContentTitle("You have " + dataSnapshot.getChildrenCount() + " Items due today")
-                                                    .setContentText(concatenatedItemTexts)
-                                                    .setAutoCancel(true);
+                                            @Override
+                                            public void onCancelled(DatabaseError databaseError) {
 
-                                            notificationManager.notify(0, builder.build());
-                                        }
-
-                                        @Override
-                                        public void onCancelled(DatabaseError databaseError) {
-
-                                        }
-                                    });
+                                            }
+                                        });
+                                    }
                                 }
 
 

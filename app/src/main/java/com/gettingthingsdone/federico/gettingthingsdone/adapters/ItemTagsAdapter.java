@@ -10,7 +10,7 @@ import android.widget.TextView;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
 import com.gettingthingsdone.federico.gettingthingsdone.Tag;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.ItemActivity;
-import com.gettingthingsdone.federico.gettingthingsdone.activities.MainActivity;
+import com.gettingthingsdone.federico.gettingthingsdone.activities.LogInActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.TagActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.TagsFragment;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.TrashFragment;
@@ -67,8 +67,8 @@ public class ItemTagsAdapter extends RecyclerView.Adapter<ItemTagsAdapter.ViewHo
         selectedViews = new ArrayList<>();
         selectedIndexes = new ArrayList<>();
 
-        firebaseAuth = MainActivity.firebaseAuth;
-        databaseReference = MainActivity.databaseReference;
+        firebaseAuth = LogInActivity.firebaseAuth;
+        databaseReference = LogInActivity.databaseReference;
 
         databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("tags").addChildEventListener(new ChildEventListener() {
             @Override

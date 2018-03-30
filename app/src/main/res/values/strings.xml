@@ -82,6 +82,8 @@
     <string name="this_project_has_no_items">This Project has no Items.</string>
     <string name="this_day_has_no_items">You have no Items due this day.</string>
 
+    <string name="item_restored">Item restored to In Tray</string>
+
     <string name="tag_notifications">Tag notifications</string>
 
 
@@ -140,6 +142,9 @@
     <string name="calendar_notification_channel_name">Calendar notifications</string>
     <!--<string name="calendar_notification_title"></string>-->
 
+    <string name="tags_notification_channel_name">Tag notifications</string>
+    <string name="tags_notification_title">This Item is relevant right now</string>
+
     <string name="notifications">Notifications</string>
     <string name="settings_intray_reminders">In Tray weekly Clarification reminders</string>
     <string name="day_of_the_week">Day of the week</string>
@@ -154,9 +159,11 @@
     <string name="reset">Reset</string>
 
     <string name="delete_account_confirmation_title">Are you sure you want to delete your account?</string>
-    <string name="delete_account_confirmation_message">Your account and your data will be permanently deleted and you will be logged out</string>
+    <string name="delete_account_confirmation_message">Your account will be permanently deleted and you will be logged out</string>
 
     <string name="enter_password_to_delete_account">Please enter your password to delete your account</string>
     <string name="could_not_delete_account">Something went wrong while deleting your account. Please try again later</string>
+
+    <string name="could_not_connect_to_location">Something went wrong while retreiving your location</string>
 
 </resources>

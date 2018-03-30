@@ -4,10 +4,8 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
-import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
@@ -27,10 +25,9 @@ import com.gettingthingsdone.federico.gettingthingsdone.Item;
 import com.gettingthingsdone.federico.gettingthingsdone.Project;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.ItemActivity;
-import com.gettingthingsdone.federico.gettingthingsdone.activities.MainActivity;
+import com.gettingthingsdone.federico.gettingthingsdone.activities.LogInActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.MainFragmentActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.CalendarFragment;
-import com.github.sundeepk.compactcalendarview.domain.Event;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -83,8 +80,8 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarAdapter.ViewHo
 
         projects = new ArrayList<>();
 
-        firebaseAuth = MainActivity.firebaseAuth;
-        databaseReference = MainActivity.databaseReference;
+        firebaseAuth = LogInActivity.firebaseAuth;
+        databaseReference = LogInActivity.databaseReference;
 
         selectedIndexes = new ArrayList<>();
         selectedCards = new ArrayList<>();
@@ -469,9 +466,9 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarAdapter.ViewHo
                     } else if (moveIntoListPosition == 1) {
                         showDatePickerPopup();
                     } else if (moveIntoListPosition == 2) {
-                        moveItemTo("maybelater");
-                    } else if (moveIntoListPosition == 3) {
                         moveItemTo("waitingfor");
+                    } else if (moveIntoListPosition == 3) {
+                        moveItemTo("maybelater");
                     } else if (moveIntoListPosition == 4) {
                         moveItemTo("reference");
                     } else if (moveIntoListPosition == 5) {
@@ -540,6 +537,8 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarAdapter.ViewHo
                         databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid())
                                 .child("projects").child(project.getKey()).child("projectItems")
                                 .child(movingItem.getKey()).setValue(editedInTrayItemValue);
+
+                        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(movingItem.getKey()).child("listName").setValue("projects " + project.getKey());
 
                         items.remove(movingItem);
 
@@ -613,8 +612,17 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarAdapter.ViewHo
 
                     Project newProject = new Project(projectTitle, projectDescription, projectItems);
 
-                    databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("projects").push().setValue(newProject);
+                    databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("projects").push().setValue(newProject, new DatabaseReference.CompletionListener() {
+                        @Override
+                        public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                            System.out.println("CREATING NEW PROJECT AND GIVING PROJECTKEY " + databaseReference.getKey() + " TO ITEM");
+
+                            LogInActivity.databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(movingItem.getKey()).child("listName").setValue("projects " + databaseReference.getKey());
+                        }
+                    });
                     databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("calendar").child(selectedDate).child(movingItem.getKey()).removeValue();
+
+//                    databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(movingItem.getKey()).child("listName").setValue("projects " + newProject.getKey());
 
                     projectItems.remove(movingItem);
 
@@ -727,6 +735,8 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarAdapter.ViewHo
                     databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("calendar").child(selectedDate).child(movingItem.getKey()).removeValue();
                     databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("calendar").child(dateAsString).child(movingItem.getKey()).setValue(itemValue);
 
+                    databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(movingItem.getKey()).child("listName").setValue("calendar " + dateAsString);
+
                     Date date = new Date();
 
                     try {
@@ -770,6 +780,8 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarAdapter.ViewHo
             databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child(list).child(movingItem.getKey()).setValue(editedInTrayItemValue);
             databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("calendar").child(selectedDate).child(movingItem.getKey()).removeValue();
 
+            databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(movingItem.getKey()).child("listName").setValue(list);
+
             items.remove(movingItem);
 
             calendarFragment.notifyAdapter();
@@ -780,16 +792,16 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarAdapter.ViewHo
 
             switch (list) {
                 case "waitingfor":
-                    Toast.makeText(calendarFragment.getActivity(), calendarFragment.getActivity().getResources().getString(R.string.waiting_for), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(calendarFragment.getActivity(), "Item moved to " + calendarFragment.getActivity().getResources().getString(R.string.waiting_for), Toast.LENGTH_SHORT).show();
                     break;
                 case "maybelater":
-                    Toast.makeText(calendarFragment.getActivity(), calendarFragment.getActivity().getResources().getString(R.string.maybe_later), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(calendarFragment.getActivity(), "Item moved to " + calendarFragment.getActivity().getResources().getString(R.string.maybe_later), Toast.LENGTH_SHORT).show();
                     break;
                 case "reference":
-                    Toast.makeText(calendarFragment.getActivity(), calendarFragment.getActivity().getResources().getString(R.string.reference), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(calendarFragment.getActivity(), "Item moved to " + calendarFragment.getActivity().getResources().getString(R.string.reference), Toast.LENGTH_SHORT).show();
                     break;
                 case "trash":
-                    Toast.makeText(calendarFragment.getActivity(), calendarFragment.getActivity().getResources().getString(R.string.trash), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(calendarFragment.getActivity(), "Item moved to " + calendarFragment.getActivity().getResources().getString(R.string.trash), Toast.LENGTH_SHORT).show();
                     break;
             }
 

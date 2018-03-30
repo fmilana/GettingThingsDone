@@ -1,32 +1,20 @@
 package com.gettingthingsdone.federico.gettingthingsdone.adapters;
 
-import android.app.AlertDialog;
-import android.app.Fragment;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.constraint.ConstraintLayout;
-import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.gettingthingsdone.federico.gettingthingsdone.Item;
 import com.gettingthingsdone.federico.gettingthingsdone.Project;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
-import com.gettingthingsdone.federico.gettingthingsdone.activities.ItemActivity;
-import com.gettingthingsdone.federico.gettingthingsdone.activities.MainActivity;
+import com.gettingthingsdone.federico.gettingthingsdone.activities.LogInActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.MainFragmentActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.ProjectActivity;
-import com.gettingthingsdone.federico.gettingthingsdone.fragments.InTrayFragment;
-import com.gettingthingsdone.federico.gettingthingsdone.fragments.MaybeLaterFragment;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.ProjectsFragment;
-import com.gettingthingsdone.federico.gettingthingsdone.fragments.ReferenceFragment;
-import com.gettingthingsdone.federico.gettingthingsdone.fragments.TrashFragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -61,8 +49,8 @@ public class ProjectsAdapter extends RecyclerView.Adapter<ProjectsAdapter.ViewHo
 
         this.projects = new ArrayList<>();
 
-        firebaseAuth = MainActivity.firebaseAuth;
-        databaseReference = MainActivity.databaseReference;
+        firebaseAuth = LogInActivity.firebaseAuth;
+        databaseReference = LogInActivity.databaseReference;
 
         selectedIndexes = new ArrayList<>();
         selectedCards = new ArrayList<>();
@@ -96,8 +84,26 @@ public class ProjectsAdapter extends RecyclerView.Adapter<ProjectsAdapter.ViewHo
                 projectsFragment.getEmptyProjectsText().setVisibility(View.GONE);
                 projectsFragment.getProgressBar().setVisibility(View.GONE);
 
-                Project project = dataSnapshot.getValue(Project.class);
+                final Project project = dataSnapshot.getValue(Project.class);
                 project.setKey(dataSnapshot.getKey());
+
+//                databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("projects").child(project.getKey()).child("projectItems").addListenerForSingleValueEvent(new ValueEventListener() {
+//                    @Override
+//                    public void onDataChange(DataSnapshot dataSnapshot) {
+//                        for (DataSnapshot childDataSnapshot : dataSnapshot.getChildren()) {
+//                            childDataSnapshot.child("listName").getRef().setValue("projects " + project.getKey());
+//                        }
+//                    }
+//
+//                    @Override
+//                    public void onCancelled(DatabaseError databaseError) {
+//
+//                    }
+//                });
+
+
+
+
                 projects.add(project);
                 notifyDataSetChanged();
             }

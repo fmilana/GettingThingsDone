@@ -26,7 +26,7 @@ import com.gettingthingsdone.federico.gettingthingsdone.Item;
 import com.gettingthingsdone.federico.gettingthingsdone.Project;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.ItemActivity;
-import com.gettingthingsdone.federico.gettingthingsdone.activities.MainActivity;
+import com.gettingthingsdone.federico.gettingthingsdone.activities.LogInActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.MainFragmentActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.ReferenceFragment;
 import com.google.firebase.auth.FirebaseAuth;
@@ -73,8 +73,8 @@ public class ReferenceAdapter extends RecyclerView.Adapter<ReferenceAdapter.View
 
         projects = new ArrayList<>();
 
-        firebaseAuth = MainActivity.firebaseAuth;
-        databaseReference = MainActivity.databaseReference;
+        firebaseAuth = LogInActivity.firebaseAuth;
+        databaseReference = LogInActivity.databaseReference;
 
         selectedIndexes = new ArrayList<>();
         selectedCards = new ArrayList<>();
@@ -461,7 +461,9 @@ public class ReferenceAdapter extends RecyclerView.Adapter<ReferenceAdapter.View
             String editedInTrayItemValue = databaseReference.push().getKey();
 
             databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child(list).child(movingItem.getKey()).setValue(editedInTrayItemValue);
-           databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("reference").child(movingItem.getKey()).removeValue();
+            databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("reference").child(movingItem.getKey()).removeValue();
+
+            databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(movingItem.getKey()).child("listName").setValue(list);
 
             items.remove(movingItem);
 
@@ -473,13 +475,13 @@ public class ReferenceAdapter extends RecyclerView.Adapter<ReferenceAdapter.View
 
             switch (list) {
                 case "waitingfor":
-                    Toast.makeText(referenceFragment.getActivity(), referenceFragment.getActivity().getResources().getString(R.string.waiting_for), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(referenceFragment.getActivity(), "Item moved to " + referenceFragment.getActivity().getResources().getString(R.string.waiting_for), Toast.LENGTH_SHORT).show();
                     break;
                 case "maybelater":
-                    Toast.makeText(referenceFragment.getActivity(), referenceFragment.getActivity().getResources().getString(R.string.maybe_later), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(referenceFragment.getActivity(), "Item moved to " + referenceFragment.getActivity().getResources().getString(R.string.maybe_later), Toast.LENGTH_SHORT).show();
                     break;
                 case "trash":
-                    Toast.makeText(referenceFragment.getActivity(), referenceFragment.getActivity().getResources().getString(R.string.trash), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(referenceFragment.getActivity(), "Item moved to " + referenceFragment.getActivity().getResources().getString(R.string.trash), Toast.LENGTH_SHORT).show();
                     break;
             }
         }
@@ -538,6 +540,8 @@ public class ReferenceAdapter extends RecyclerView.Adapter<ReferenceAdapter.View
                         databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid())
                                 .child("projects").child(project.getKey()).child("projectItems")
                                 .child(movingItem.getKey()).setValue(editedInTrayItemValue);
+
+                        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(movingItem.getKey()).child("listName").setValue("projects " + project.getKey());
 
                         items.remove(movingItem);
 
@@ -611,8 +615,17 @@ public class ReferenceAdapter extends RecyclerView.Adapter<ReferenceAdapter.View
 
                     Project newProject = new Project(projectTitle, projectDescription, projectItems);
 
-                    databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("projects").push().setValue(newProject);
+                    databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("projects").push().setValue(newProject, new DatabaseReference.CompletionListener() {
+                        @Override
+                        public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                            System.out.println("CREATING NEW PROJECT AND GIVING PROJECTKEY " + databaseReference.getKey() + " TO ITEM");
+
+                            LogInActivity.databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(movingItem.getKey()).child("listName").setValue("projects " + databaseReference.getKey());
+                        }
+                    });
                     databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("reference").child(movingItem.getKey()).removeValue();
+
+//                    databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(movingItem.getKey()).child("listName").setValue("projects " + newProject.getKey());
 
                     items.remove(movingItem);
 
@@ -725,6 +738,8 @@ public class ReferenceAdapter extends RecyclerView.Adapter<ReferenceAdapter.View
                     databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("calendar").
                             child(date).child(movingItem.getKey()).setValue(itemValue);
                     databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("reference").child(movingItem.getKey()).removeValue();
+
+                    databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(movingItem.getKey()).child("listName").setValue("calendar " + date);
 
                     items.remove(movingItem);
 

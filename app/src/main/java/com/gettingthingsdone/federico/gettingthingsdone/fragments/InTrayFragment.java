@@ -1,6 +1,5 @@
 package com.gettingthingsdone.federico.gettingthingsdone.fragments;
 
-import android.app.DatePickerDialog;
 import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
@@ -21,7 +20,7 @@ import android.widget.Toast;
 import com.gettingthingsdone.federico.gettingthingsdone.Item;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.ItemActivity;
-import com.gettingthingsdone.federico.gettingthingsdone.activities.MainActivity;
+import com.gettingthingsdone.federico.gettingthingsdone.activities.LogInActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.MainFragmentActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.adapters.InTrayAdapter;
 import com.google.firebase.auth.FirebaseAuth;
@@ -60,12 +59,12 @@ public class InTrayFragment extends Fragment {
 
         System.out.println("++++++++++intrayFragmentOnStart+++++++++++++++ MainFragmentActivity.getItems().size() = "+ MainFragmentActivity.getItems().size());
 
-        firebaseAuth = MainActivity.firebaseAuth;
-        databaseReference = MainActivity.databaseReference;
+        firebaseAuth = LogInActivity.firebaseAuth;
+        databaseReference = LogInActivity.databaseReference;
 
 
         if (firebaseAuth.getCurrentUser() == null) {
-            Intent intent = new Intent(getActivity(), MainActivity.class);
+            Intent intent = new Intent(getActivity(), LogInActivity.class);
             getActivity().startActivity(intent);
         }
     }

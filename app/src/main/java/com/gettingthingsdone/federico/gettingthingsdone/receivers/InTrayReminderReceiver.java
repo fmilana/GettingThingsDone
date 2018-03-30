@@ -10,9 +10,8 @@ import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 
 import com.gettingthingsdone.federico.gettingthingsdone.R;
-import com.gettingthingsdone.federico.gettingthingsdone.activities.MainActivity;
+import com.gettingthingsdone.federico.gettingthingsdone.activities.LogInActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.MainFragmentActivity;
-import com.gettingthingsdone.federico.gettingthingsdone.fragments.InTrayFragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -25,11 +24,11 @@ import com.google.firebase.database.ValueEventListener;
 
 public class InTrayReminderReceiver extends BroadcastReceiver {
 
+    final DatabaseReference databaseReference = LogInActivity.databaseReference;
+    final FirebaseAuth firebaseAuth = LogInActivity.firebaseAuth;
+
     @Override
     public void onReceive(final Context context, Intent intent) {
-
-        final DatabaseReference databaseReference = MainActivity.databaseReference;
-        final FirebaseAuth firebaseAuth = MainActivity.firebaseAuth;
 
         System.out.println("RECEIVING INTRAY REMINDER!");
 
@@ -46,29 +45,33 @@ public class InTrayReminderReceiver extends BroadcastReceiver {
                         inTrayReference.addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(DataSnapshot dataSnapshot) {
-                                NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                                long numberOfInTrayItems = dataSnapshot.getChildrenCount();
 
-                                Intent notificationIntent = new Intent(context, MainFragmentActivity.class);
-                                notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                if (numberOfInTrayItems > 0) {
+                                    NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
-                                PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                                    Intent notificationIntent = new Intent(context, MainFragmentActivity.class);
+                                    notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                    NotificationChannel inTrayClarificationChannel = new NotificationChannel(MainFragmentActivity.INTRAY_REMINDERS_CHANNEL,
-                                            context.getResources().getString(R.string.in_tray_notification_channel_name), NotificationManager.IMPORTANCE_DEFAULT);
-                                    inTrayClarificationChannel.setLightColor(context.getColor(R.color.colorAccent));
+                                    PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-                                    notificationManager.createNotificationChannel(inTrayClarificationChannel);
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                        NotificationChannel inTrayClarificationChannel = new NotificationChannel(MainFragmentActivity.INTRAY_REMINDERS_CHANNEL,
+                                                context.getResources().getString(R.string.in_tray_notification_channel_name), NotificationManager.IMPORTANCE_DEFAULT);
+                                        inTrayClarificationChannel.setLightColor(context.getColor(R.color.colorAccent));
 
+                                        notificationManager.createNotificationChannel(inTrayClarificationChannel);
+
+                                    }
+
+                                    NotificationCompat.Builder builder = new NotificationCompat.Builder(context, MainFragmentActivity.INTRAY_REMINDERS_CHANNEL).setContentIntent(pendingIntent)
+                                            .setSmallIcon(R.drawable.ic_notification_icon)
+                                            .setContentTitle(context.getResources().getString(R.string.in_tray_notification_title))
+                                            .setContentText("You have " + numberOfInTrayItems + " Items to Clarify")
+                                            .setAutoCancel(true);
+
+                                    notificationManager.notify(0, builder.build());
                                 }
-
-                                NotificationCompat.Builder builder = new NotificationCompat.Builder(context, MainFragmentActivity.INTRAY_REMINDERS_CHANNEL).setContentIntent(pendingIntent)
-                                        .setSmallIcon(R.drawable.ic_notification_icon)
-                                        .setContentTitle(context.getResources().getString(R.string.in_tray_notification_title))
-                                        .setContentText("You have " + dataSnapshot.getChildrenCount() + " Items to Clarify")
-                                        .setAutoCancel(true);
-
-                                notificationManager.notify(0, builder.build());
                             }
 
                             @Override

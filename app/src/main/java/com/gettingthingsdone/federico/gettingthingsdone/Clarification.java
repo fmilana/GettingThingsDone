@@ -3,6 +3,7 @@ package com.gettingthingsdone.federico.gettingthingsdone;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.text.Editable;
 import android.text.InputType;
@@ -16,8 +17,10 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import com.gettingthingsdone.federico.gettingthingsdone.activities.MainActivity;
+import com.gettingthingsdone.federico.gettingthingsdone.activities.LogInActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.InTrayFragment;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -54,8 +57,8 @@ public class Clarification {
 
         projects = new ArrayList<>();
 
-        firebaseAuth = MainActivity.firebaseAuth;
-        databaseReference = MainActivity.databaseReference;
+        firebaseAuth = LogInActivity.firebaseAuth;
+        databaseReference = LogInActivity.databaseReference;
 
         databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("projects").addChildEventListener(new ChildEventListener() {
             @Override
@@ -325,7 +328,8 @@ public class Clarification {
 
                 Item itemToRemove = item;
 
-                MainActivity.databaseReference.child("users").child(MainActivity.firebaseAuth.getCurrentUser().getUid()).child("intray").child(itemToRemove.getKey()).removeValue();
+                databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("intray").child(itemToRemove.getKey()).removeValue();
+                databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(itemToRemove.getKey()).removeValue();
 
                 inTrayFragment.getItems().remove(itemToRemove);
 
@@ -526,6 +530,8 @@ public class Clarification {
                         child(date).child(item.getKey()).setValue(itemValue);
                 databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("intray").child(item.getKey()).removeValue();
 
+                databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(item.getKey()).child("listName").setValue("calendar " + date);
+
                 inTrayFragment.getItems().remove(item);
 
                 inTrayFragment.notifyAdapter();
@@ -636,6 +642,8 @@ public class Clarification {
                             .child("projects").child(project.getKey()).child("projectItems")
                             .child(item.getKey()).setValue(editedInTrayItemValue);
 
+                    databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(item.getKey()).child("listName").setValue("projects " + project.getKey());
+
                     inTrayFragment.getItems().remove(item);
 
                     inTrayFragment.notifyAdapter();
@@ -708,8 +716,17 @@ public class Clarification {
 
                 Project newProject = new Project(projectTitle, projectDescription, projectItems);
 
-                databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("projects").push().setValue(newProject);
+                databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("projects").push().setValue(newProject, new DatabaseReference.CompletionListener() {
+                    @Override
+                    public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                        System.out.println("CREATING NEW PROJECT AND GIVING PROJECTKEY " + databaseReference.getKey() + " TO ITEM");
+
+                        LogInActivity.databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(item.getKey()).child("listName").setValue("projects " + databaseReference.getKey());
+                    }
+                });
+
                 databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("intray").child(item.getKey()).removeValue();
+
 
                 inTrayFragment.getItems().remove(item);
 
@@ -908,6 +925,8 @@ public class Clarification {
 
         databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child(list).child(item.getKey()).setValue(editedInTrayItemValue);
         databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("intray").child(item.getKey()).removeValue();
+
+        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(item.getKey()).child("listName").setValue(list);
 
         inTrayFragment.getItems().remove(item);
 
