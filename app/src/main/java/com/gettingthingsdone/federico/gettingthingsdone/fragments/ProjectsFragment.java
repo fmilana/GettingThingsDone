@@ -22,6 +22,7 @@ import com.gettingthingsdone.federico.gettingthingsdone.R;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.LogInActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.MainFragmentActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.ProjectActivity;
+
 import com.gettingthingsdone.federico.gettingthingsdone.adapters.ProjectsAdapter;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -152,8 +153,10 @@ public class ProjectsFragment extends Fragment {
             for (int i = 0; i < projectsToRemove.size(); ++i) {
                 Project project = projectsToRemove.get(i);
 
-                for (String key : project.getProjectItems().keySet()) {
-                    databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(key).removeValue();
+                if (project.getProjectItems() != null) {
+                    for (String key : project.getProjectItems().keySet()) {
+                        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("items").child(key).removeValue();
+                    }
                 }
             }
 

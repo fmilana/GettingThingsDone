@@ -81,6 +81,8 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void registerUser() {
+        registerButton.setEnabled(false);
+
         String email = emailEditText.getText().toString().trim();
         String password = passwordEditText.getText().toString().trim();
         String confirmedPassword = confirmPasswordEditText.getText().toString().trim();
@@ -137,8 +139,14 @@ public class RegisterActivity extends AppCompatActivity {
                             User newUser = new User(emailEditText.getText().toString().trim());
                             databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).setValue(newUser);
 
-                            Intent intent = new Intent(RegisterActivity.this, MainFragmentActivity.class);
+//                            Intent intent = new Intent(RegisterActivity.this, MainFragmentActivity.class);
+//                            RegisterActivity.this.startActivity(intent);
+
+
+                            Intent intent = new Intent(RegisterActivity.this, IntroductionActivity.class);
                             RegisterActivity.this.startActivity(intent);
+
+
                         } else {
                             progressBar.setVisibility(View.INVISIBLE);
 
@@ -156,6 +164,8 @@ public class RegisterActivity extends AppCompatActivity {
                         }
                     }
                 });
+
+        registerButton.setEnabled(true);
     }
 
     public static boolean isEmailValid(String email) {

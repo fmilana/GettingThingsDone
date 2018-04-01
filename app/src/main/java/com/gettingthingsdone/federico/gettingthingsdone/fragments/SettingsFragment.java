@@ -26,6 +26,8 @@ import android.widget.ToggleButton;
 
 import com.gettingthingsdone.federico.gettingthingsdone.R;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.LogInActivity;
+import com.gettingthingsdone.federico.gettingthingsdone.activities.MainFragmentActivity;
+
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
@@ -63,7 +65,7 @@ public class SettingsFragment extends Fragment {
     private Switch calendarNotificationsSwitch;
 
     private Button resetAccountButton;
-    private Button deleteAccountButton;
+//    private Button deleteAccountButton;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -94,7 +96,7 @@ public class SettingsFragment extends Fragment {
         calendarNotificationsSwitch = (Switch) view.findViewById(R.id.settings_calendar_notification_switch);
 
         resetAccountButton = (Button) view.findViewById(R.id.reset_account_button);
-        deleteAccountButton = (Button) view.findViewById(R.id.delete_account_button);
+//        deleteAccountButton = (Button) view.findViewById(R.id.delete_account_button);
 
         setToggleButtonListener(mondayToggleButton);
         setToggleButtonListener(tuesdayToggleButton);
@@ -120,7 +122,7 @@ public class SettingsFragment extends Fragment {
         setCalendarNotificationButtonListener();
 
         setResetAccountButtonListener();
-        setDeleteAccountButtonListener();
+//        setDeleteAccountButtonListener();
 
         getActivity().setTitle(R.string.settings);
 
@@ -608,134 +610,134 @@ public class SettingsFragment extends Fragment {
         inTrayRemindersTimeButton.setTextColor(getResources().getColor(R.color.colorBlack));
     }
 
-    private void setDeleteAccountButtonListener() {
-        deleteAccountButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+//    private void setDeleteAccountButtonListener() {
+//        deleteAccountButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+//
+//                builder.setTitle(getResources().getString(R.string.delete_account_confirmation_title));
+//                builder.setMessage(getResources().getString(R.string.delete_account_confirmation_message));
+//
+//                builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialogInterface, int i) {
+//
+//                    }
+//                });
+//
+//                builder.setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialogInterface, int i) {
+//                        askForPassword();
+//                    }
+//                });
+//
+//                AlertDialog dialog = builder.create();
+//
+//                dialog.show();
+//            }
+//        });
+//    }
 
-                builder.setTitle(getResources().getString(R.string.delete_account_confirmation_title));
-                builder.setMessage(getResources().getString(R.string.delete_account_confirmation_message));
+//    private void askForPassword() {
+//        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+//
+//        builder.setTitle(getResources().getString(R.string.enter_password_to_delete_account));
+//
+//        LinearLayout layout = new LinearLayout(getActivity());
+//        layout.setOrientation(LinearLayout.VERTICAL);
+//
+//        int standardPadding = Math.round(getResources().getDimension(R.dimen.standard_padding));
+//        layout.setPadding(standardPadding, standardPadding, standardPadding, standardPadding);
+//
+//        final EditText passwordEditText = new EditText(getActivity());
+//        passwordEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+//
+//        layout.addView(passwordEditText);
+//
+//        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+//            @Override
+//            public void onClick(DialogInterface dialogInterface, int i) {
+//
+//            }
+//        });
+//
+//        builder.setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
+//            @Override
+//            public void onClick(DialogInterface dialogInterface, int i) {
+//                deleteAccount(passwordEditText.getText().toString());
+//            }
+//        });
+//
+//        final AlertDialog dialog = builder.create();
+//        dialog.setView(layout);
+//
+//        dialog.show();
+//
+//        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+//
+//        passwordEditText.addTextChangedListener(new TextWatcher() {
+//            @Override
+//            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+//
+//            }
+//
+//            @Override
+//            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+//                if (charSequence.length() > 0) {
+//                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+//                } else {
+//                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+//                }
+//            }
+//
+//            @Override
+//            public void afterTextChanged(Editable editable) {
+//
+//            }
+//        });
+//
+//        passwordEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+//            @Override
+//            public void onFocusChange(View view, boolean hasFocus) {
+//                if (hasFocus) {
+//                    dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+//                }
+//            }
+//        });
+//    }
 
-                builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-
-                    }
-                });
-
-                builder.setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        askForPassword();
-                    }
-                });
-
-                AlertDialog dialog = builder.create();
-
-                dialog.show();
-            }
-        });
-    }
-
-    private void askForPassword() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-
-        builder.setTitle(getResources().getString(R.string.enter_password_to_delete_account));
-
-        LinearLayout layout = new LinearLayout(getActivity());
-        layout.setOrientation(LinearLayout.VERTICAL);
-
-        int standardPadding = Math.round(getResources().getDimension(R.dimen.standard_padding));
-        layout.setPadding(standardPadding, standardPadding, standardPadding, standardPadding);
-
-        final EditText passwordEditText = new EditText(getActivity());
-        passwordEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-
-        layout.addView(passwordEditText);
-
-        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-
-            }
-        });
-
-        builder.setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                deleteAccount(passwordEditText.getText().toString());
-            }
-        });
-
-        final AlertDialog dialog = builder.create();
-        dialog.setView(layout);
-
-        dialog.show();
-
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
-
-        passwordEditText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                if (charSequence.length() > 0) {
-                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
-                } else {
-                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
-                }
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-
-            }
-        });
-
-        passwordEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View view, boolean hasFocus) {
-                if (hasFocus) {
-                    dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
-                }
-            }
-        });
-    }
-
-    private void deleteAccount(String password) {
-
-        final FirebaseUser currentUser = firebaseAuth.getCurrentUser();
-        final String currentUserId = currentUser.getUid();
-
-        AuthCredential credential = EmailAuthProvider.getCredential(currentUser.getEmail(), password);
-
-        currentUser.reauthenticate(credential).addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if (task.isSuccessful()) {
-
-                    Intent intent = new Intent(getActivity(), LogInActivity.class);
-                    startActivity(intent);
-
-                    LogInActivity.firebaseAuth = null;
-
-                    getActivity().finish();
-
-                    FirebaseAuth.getInstance().signOut();
-
-                    currentUser.delete();
-
-//                    databaseReference.child("users").child(currentUserId).removeValue();
-                } else {
-                    askForPassword();
-
-                    Toast.makeText(getActivity(), getResources().getString(R.string.wrong_password), Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-    }
+//    private void deleteAccount(String password) {
+//
+//        final FirebaseUser currentUser = firebaseAuth.getCurrentUser();
+//        final String currentUserId = currentUser.getUid();
+//
+//        AuthCredential credential = EmailAuthProvider.getCredential(currentUser.getEmail(), password);
+//
+//        currentUser.reauthenticate(credential).addOnCompleteListener(new OnCompleteListener<Void>() {
+//            @Override
+//            public void onComplete(@NonNull Task<Void> task) {
+//                if (task.isSuccessful()) {
+//
+//                    Intent intent = new Intent(getActivity(), LogInActivity.class);
+//                    startActivity(intent);
+//
+//                    SplashActivity.firebaseAuth = null;
+//
+//                    getActivity().finish();
+//
+//                    FirebaseAuth.getInstance().signOut();
+//
+//                    currentUser.delete();
+//
+////                    databaseReference.child("users").child(currentUserId).removeValue();
+//                } else {
+//                    askForPassword();
+//
+//                    Toast.makeText(getActivity(), getResources().getString(R.string.wrong_password), Toast.LENGTH_SHORT).show();
+//                }
+//            }
+//        });
+//    }
 }

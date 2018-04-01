@@ -18,8 +18,11 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -47,12 +50,30 @@ public class LogInActivity extends AppCompatActivity {
         firebaseAuth = FirebaseAuth.getInstance();
 
 //
-        //if user is already logged in
-        if (firebaseAuth.getCurrentUser() != null) {
-            Intent intent = new Intent(LogInActivity.this, MainFragmentActivity.class);
-            LogInActivity.this.startActivity(intent);
-            finish();
-        }
+//        databaseReference.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(DataSnapshot dataSnapshot) {
+//                //if user is already logged in
+            if (firebaseAuth.getCurrentUser() != null) {
+                System.out.println("USER " + firebaseAuth.getCurrentUser().getEmail() + " IS ALREADY LOGGED IN");
+
+                //            if (firebaseAuth.getCurrentUser().getEmail().equals("federicomilana@msn.com")) {
+                //                firebaseAuth.signOut();
+                //            }
+                //            else {
+                Intent intent = new Intent(LogInActivity.this, MainFragmentActivity.class);
+                LogInActivity.this.startActivity(intent);
+                finish();
+                    //            }
+//                }
+            }
+
+//            @Override
+//            public void onCancelled(DatabaseError databaseError) {
+//
+//            }
+//        });
+
 
         emailEditText = (EditText) findViewById(R.id.insert_email_address);
         passwordEditText = (EditText) findViewById(R.id.insert_password);
@@ -88,6 +109,8 @@ public class LogInActivity extends AppCompatActivity {
     }
 
     private void signIn(String email, String password) {
+
+        loginButton.setEnabled(false);
 
         if (TextUtils.isEmpty(email)) {
             //email is empty
@@ -129,6 +152,8 @@ public class LogInActivity extends AppCompatActivity {
                         }
                     }
                 });
+
+        loginButton.setEnabled(false);
     }
 
     public static boolean isEmailValid(String email) {

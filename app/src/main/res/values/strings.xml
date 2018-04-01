@@ -164,6 +164,31 @@
     <string name="enter_password_to_delete_account">Please enter your password to delete your account</string>
     <string name="could_not_delete_account">Something went wrong while deleting your account. Please try again later</string>
 
-    <string name="could_not_connect_to_location">Something went wrong while retreiving your location</string>
+    <string name="could_not_connect_to_location">Something went wrong while retrieving your location</string>
+
+
+    <string name="intro_activity_name">Introduction Activity</string>
+
+    <string name="first_intro_fragment_title">Welcome to GTD</string>
+    <string name="first_intro_fragment_description">This application aims at improving your productivity by adopting the Getting Things Done methodology by David Allen.
+        Let\'s go through some of GTD concepts and features that you can use.</string>
+
+    <string name="second_intro_fragment_title">Items</string>
+    <string name="second_intro_fragment_description">An Item could be anything: something to do or to remember.</string>
+
+    <string name="third_intro_fragment_title">Tags</string>
+    <string name="third_intro_fragment_description">Tags help give context to your Items. By setting a Tag\'s time and place, you will be notified of any Item with that Tag
+        in the appropriate context.</string>
+
+    <string name="fourth_intro_fragment_title">In Tray</string>
+    <string name="fourth_intro_fragment_description">This is where you should enter every Item you can think of. By freeing your mind of the responsibility of remembering things,
+        you can focus on getting thing done.</string>
+
+    <string name="fifth_intro_fragment_title">Clarification</string>
+    <string name="fifth_intro_fragment_description">Items in the In Tray need to be Clarified eventually. You can answer a few questions to help you place the Item
+        in the appropriate list.</string>
+
+    <string name="sixth_intro_fragment_title">That\'s it!</string>
+    <string name="sixth_intro_fragment_description">Now you know the basics of Getting Things Done.</string>
 
 </resources>

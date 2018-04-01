@@ -18,6 +18,8 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.gettingthingsdone.federico.gettingthingsdone.activities.LogInActivity;
+import com.gettingthingsdone.federico.gettingthingsdone.activities.MainFragmentActivity;
+
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.InTrayFragment;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -681,7 +683,7 @@ public class Clarification {
         final EditText projectDescriptionEditText = new EditText(context);
         projectDescriptionEditText.setHint("Description");
         projectDescriptionEditText.setMaxLines(5);
-        projectDescriptionEditText.setInputType(InputType.TYPE_CLASS_TEXT);
+        projectDescriptionEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
         layout.addView(projectDescriptionEditText);
 
         int standardPadding = Math.round(inTrayFragment.getResources().getDimension(R.dimen.standard_padding));

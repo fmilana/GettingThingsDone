@@ -20,6 +20,7 @@ import com.gettingthingsdone.federico.gettingthingsdone.Item;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.LogInActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.MainFragmentActivity;
+
 import com.gettingthingsdone.federico.gettingthingsdone.adapters.ReferenceAdapter;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;

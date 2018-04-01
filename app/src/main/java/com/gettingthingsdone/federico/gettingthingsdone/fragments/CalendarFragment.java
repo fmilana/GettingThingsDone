@@ -19,6 +19,7 @@ import com.gettingthingsdone.federico.gettingthingsdone.Item;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.LogInActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.MainFragmentActivity;
+
 import com.gettingthingsdone.federico.gettingthingsdone.adapters.CalendarAdapter;
 import com.github.sundeepk.compactcalendarview.CompactCalendarView;
 import com.github.sundeepk.compactcalendarview.domain.Event;

@@ -27,6 +27,7 @@ import com.gettingthingsdone.federico.gettingthingsdone.R;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.ItemActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.LogInActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.MainFragmentActivity;
+
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.CalendarFragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
@@ -571,13 +572,13 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarAdapter.ViewHo
             final EditText projectTitleEditText = new EditText(context);
             projectTitleEditText.setHint("Title");
             projectTitleEditText.setMaxLines(1);
-            projectTitleEditText.setInputType(InputType.TYPE_CLASS_TEXT);
+            projectTitleEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
             layout.addView(projectTitleEditText);
 
             final EditText projectDescriptionEditText = new EditText(context);
             projectDescriptionEditText.setHint("Description");
             projectDescriptionEditText.setMaxLines(1);
-            projectDescriptionEditText.setInputType(InputType.TYPE_CLASS_TEXT);
+            projectDescriptionEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
             layout.addView(projectDescriptionEditText);
 
             int standardPadding = Math.round(calendarFragment.getActivity().getResources().getDimension(R.dimen.standard_padding));

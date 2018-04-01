@@ -14,6 +14,7 @@ import com.gettingthingsdone.federico.gettingthingsdone.R;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.LogInActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.MainFragmentActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.ProjectActivity;
+
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.ProjectsFragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;

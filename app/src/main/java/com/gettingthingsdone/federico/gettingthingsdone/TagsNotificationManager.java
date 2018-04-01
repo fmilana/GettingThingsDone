@@ -17,6 +17,7 @@ import com.firebase.geofire.GeoQuery;
 import com.firebase.geofire.GeoQueryEventListener;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.LogInActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.MainFragmentActivity;
+
 import com.gettingthingsdone.federico.gettingthingsdone.receivers.TagsNotificationReceiver;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;

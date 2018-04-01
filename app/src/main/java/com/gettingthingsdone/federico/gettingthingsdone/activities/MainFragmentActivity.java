@@ -5,10 +5,12 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.PersistableBundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.content.ContextCompat;
@@ -22,6 +24,7 @@ import android.view.MenuItem;
 import android.widget.TextView;
 
 import com.gettingthingsdone.federico.gettingthingsdone.Item;
+import com.gettingthingsdone.federico.gettingthingsdone.Project;
 import com.gettingthingsdone.federico.gettingthingsdone.R;
 import com.gettingthingsdone.federico.gettingthingsdone.TagsNotificationManager;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.CalendarFragment;
@@ -42,6 +45,7 @@ import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -85,8 +89,8 @@ public class MainFragmentActivity extends AppCompatActivity implements Navigatio
 
     private Menu menu;
 
-    private FirebaseAuth firebaseAuth;
-    private DatabaseReference databaseReference;
+    public static FirebaseAuth firebaseAuth;
+    public static DatabaseReference databaseReference;
 
     public static final int PERMISSION_REQUEST_READ_FINE_LOCATION = 0;
 
@@ -112,8 +116,8 @@ public class MainFragmentActivity extends AppCompatActivity implements Navigatio
 
         handler = new Handler();
 
-        firebaseAuth = LogInActivity.firebaseAuth;
-        databaseReference = LogInActivity.databaseReference;
+        databaseReference = FirebaseDatabase.getInstance().getReference();
+        firebaseAuth = FirebaseAuth.getInstance();
 
         if (firebaseAuth.getCurrentUser() == null) {
             Intent intent = new Intent(MainFragmentActivity.this, LogInActivity.class);
@@ -218,6 +222,10 @@ public class MainFragmentActivity extends AppCompatActivity implements Navigatio
             }
         }
 
+        System.out.println("ABOUT TO RUN SHOWINTRODUCTIONACTIVITY()");
+
+//        showIntroductionActivity();
+
     }
 
     @Override
@@ -257,16 +265,24 @@ public class MainFragmentActivity extends AppCompatActivity implements Navigatio
         int id = item.getItemId();
 
         if (id == R.id.menu_log_out) {
-            FirebaseAuth.getInstance().signOut();
+
+            tagsNotificationManager.resetAll(false);
+
+            firebaseAuth.signOut();
+
+            if (firebaseAuth.getCurrentUser() == null) {
+                System.out.println("USER IS NULL YEEEEEEEE");
+            } else {
+                System.out.println("USER IS NOT NULL NOOOOOOOOOOOOOO");
+            }
 
             Intent intent = new Intent(MainFragmentActivity.this, LogInActivity.class);
             MainFragmentActivity.this.startActivity(intent);
 
-            tagsNotificationManager.resetAll(false);
-
             finish();
 
             return true;
+
         } else if (id == R.id.menu_settings) {
             fragmentManager = getFragmentManager();
 
@@ -563,4 +579,34 @@ public class MainFragmentActivity extends AppCompatActivity implements Navigatio
     public TagsNotificationManager getTagsNotificationManager() {
         return tagsNotificationManager;
     }
+
+//    private void showIntroductionActivity() {
+
+//        System.out.println("INSIDE SHOWINTRODUCTIONACTIVITY");
+//
+//        databaseReference.child("users").child(firebaseAuth.getCurrentUser().getUid()).child("introShown").addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(final DataSnapshot dataSnapshot) {
+//
+//                System.out.println("INSIDE SHOWINTRODUCTIONACTIVITY ONDATACHANGE");
+//
+//                if (!(boolean) dataSnapshot.getValue()) {
+//
+//                    System.out.println("ISSHOWN IS FALSE");
+//
+//                    Intent intent = new Intent(MainFragmentActivity.this, IntroductionActivity.class);
+//                    MainFragmentActivity.this.startActivity(intent);
+//
+//                    dataSnapshot.getRef().setValue(true);
+//                } else {
+//                    System.out.println("ISSHOWN IS TRUE");
+//                }
+//            }
+//
+//            @Override
+//            public void onCancelled(DatabaseError databaseError) {
+//
+//            }
+//        });
+//    }
 }

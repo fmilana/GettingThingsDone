@@ -11,6 +11,8 @@ import com.gettingthingsdone.federico.gettingthingsdone.R;
 import com.gettingthingsdone.federico.gettingthingsdone.Tag;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.ItemActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.activities.LogInActivity;
+import com.gettingthingsdone.federico.gettingthingsdone.activities.MainFragmentActivity;
+
 import com.gettingthingsdone.federico.gettingthingsdone.activities.TagActivity;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.TagsFragment;
 import com.gettingthingsdone.federico.gettingthingsdone.fragments.TrashFragment;
